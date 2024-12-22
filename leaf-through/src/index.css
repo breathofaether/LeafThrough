@@ -1,0 +1,256 @@
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: 'Roboto', monospace;}
+
+body {
+  background-color: #f0f0f0;
+  color: #212121; 
+}
+
+h2 {
+  text-align: center;
+  font-size: 2rem;
+  font-weight: 500; 
+  margin-bottom: 16px;
+}
+
+.title {
+  cursor: pointer;
+  font-size: 2.5rem;
+  font-weight: 600; 
+  margin-top: 24px;
+  transition: color 0.3s ease;
+}
+
+.title:hover {
+  color: #009688; 
+}
+
+.instruction-text {
+  display: block;
+  text-align: center;
+  font-size: 1.1rem;
+  margin: 10px 20px;
+  color: #757575; 
+}
+
+.discover-books {
+  margin: 24px auto;
+  max-width: 800px;
+  text-align: center;
+}
+
+.primary-scroll {
+  display: flex;
+  overflow-x: hidden;
+  gap: 10px;
+  padding: 10px;
+}
+
+.primary-scroll::-webkit-scrollbar {
+  height: 6px;
+}
+
+.primary-scroll::-webkit-scrollbar-thumb {
+  background: #9e9e9e; 
+  border-radius: 3px;
+}
+
+.secondary-scroll {
+  cursor: pointer;
+  flex-shrink: 0;
+  width: 150px;
+  height: 200px;
+  overflow: hidden;
+  border-radius: 4px;
+  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 
+              0 3px 1px -2px rgba(0, 0, 0, 0.2), 
+              0 1px 5px 0 rgba(0, 0, 0, 0.12); 
+  transition: transform 0.3s ease;
+}
+
+.secondary-scroll img {
+  height: 198px;
+  width: 128px;
+  object-fit: cover;
+  border-radius: 16px;
+}
+
+.secondary-scroll:hover {
+  transform: scale(1.05); 
+}
+
+.refresh {
+  display: inline-block;
+  margin: 10px;
+  font-size: 1.5rem;
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  color: #009688; 
+  transition: transform 0.3s ease;
+}
+
+.refresh:hover {
+  transform: rotate(180deg);
+}
+
+.search-books {
+  margin: 24px auto;
+  max-width: 600px;
+  text-align: center;
+}
+
+
+.search-books input[type='text'], input[type=url] {
+  width: 80%;
+  padding: 12px;
+  font-size: 1rem;
+  border: 1px solid #bdbdbd;
+  border-radius: 4px;
+  background-color: #fff;
+  color: #212121;
+  margin-top: 10px;
+  margin-bottom: 16px;
+}
+
+.submit {
+  display: block;
+  margin-top: 10px; 
+  margin-left: 250px;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 4px;
+  background-color: #009688; 
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.suggestion-list {
+  position: relative;
+  text-align: left;
+}
+
+.suggestion-list ul {
+  list-style: none;
+  padding: 0;
+  margin: 5px 0;
+  border-radius: 4px;
+  background-color: #fff;
+  border: 1px solid #bdbdbd;
+  overflow: hidden;
+  box-shadow: 0 2px 2px 0 rgba(0, 0, 0, 0.14), 
+              0 3px 1px -2px rgba(0, 0, 0, 0.2), 
+              0 1px 5px 0 rgba(0, 0, 0, 0.12); 
+}
+
+.suggestion-list li {
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.suggestion-list li:hover {
+  background-color: #eeeeee;
+}
+
+.manual-entry {
+  margin: 24px 0;
+}
+
+.manual-entry button {
+  padding: 12px 16px;
+  border: none;
+  border-radius: 4px;
+  background-color: #009688; 
+  color: white;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  margin-top: 16px;
+}
+
+.manual-entry button:hover {
+  background-color: #00796b; 
+}
+
+.books-list {
+  margin: 24px auto;
+  max-width: 800px;
+}
+
+.books-list ul {
+  list-style: none;
+  padding: 0;
+}
+
+.books-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 16px 0;
+}
+
+.books-list li img {
+  width: 50px;
+  height: auto;
+  object-fit: cover;
+  border-radius: 4px;
+  background-color: #eeeeee;
+}
+
+.books-list li strong {
+  font-size: 1.1rem;
+}
+
+.modal, .suggest {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 90%;
+  max-width: 500px;
+  padding: 24px;
+  border-radius: 4px;
+  background-color: #fff;
+  text-align: center;
+  z-index: 1000;
+  box-shadow: 0 5px 5px -3px rgba(0, 0, 0, 0.2), 
+              0 8px 10px 1px rgba(0, 0, 0, 0.14), 
+              0 3px 14px 2px rgba(0, 0, 0, 0.12); 
+}
+
+.modal img, .suggest img {
+  width: 128px;
+  height: 198px;
+  margin-bottom: 24px;
+}
+
+.modal-close, .suggest-close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  background: transparent;
+  border: none;
+  font-size: 1.5rem;
+  color: #009688; 
+  cursor: pointer;
+}
+
+.modal-close:hover, .suggest-close:hover {
+  color: #00796b; 
+}
+
+a {
+  color: grey;
+  text-decoration: none; 
+}
+
+a:hover {
+  text-decoration: underline; 
+  color: darkgrey; 
+}
