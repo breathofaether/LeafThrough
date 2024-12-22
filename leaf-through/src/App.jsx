@@ -2,10 +2,20 @@ import React, { useState, useEffect, useRef } from 'react';
 import noThumbnail from "./images/no_cover.jpg";
 
 
-const PrintBooks = ({ books = ([]), usrBooks = ([]) }) => {
+const PrintBooks = ({ books = ([]), usrBooks = ([]), deleteBook }) => {
+  const [removingBookId, setRemovingBookId] = useState(null);
+
+  const handleDelete = (id) => {
+    setRemovingBookId(id); 
+    setTimeout(() => {
+      deleteBook(id); 
+      setRemovingBookId(null);
+    }, 300); 
+  };
+
   const combinedBooks = [...books, ...usrBooks]
   const temp = combinedBooks.map((book) => (
-    <li key={book.id}>
+    <li key={book.id} className={`book-item ${removingBookId === book.id ? 'removing' : ''}`}>
       {book.cover && (
         <img src={book.cover} alt={book.title} />
       )}
@@ -13,6 +23,9 @@ const PrintBooks = ({ books = ([]), usrBooks = ([]) }) => {
       {book.authors && (
         <em> by {book.authors.join(', ')} </em>
       )}
+      <button className='delete-button' onClick={() => handleDelete(book.id)}>
+        ❌
+      </button>
     </li>
   ))
 
@@ -112,34 +125,34 @@ function App() {
   useEffect(() => {
     const scrollContainer = scrollContainerRef.current;
     let scrollInterval;
-  
+
     const startAutoScroll = () => {
       scrollInterval = setInterval(() => {
         if (scrollContainer) {
           scrollContainer.scrollLeft += 1;
-  
+
           const maxScrollLeft = scrollContainer.scrollWidth / 2;
           if (scrollContainer.scrollLeft >= maxScrollLeft) {
             scrollContainer.scrollLeft = 0;
           }
         }
-      }, 10); 
+      }, 10);
     };
-  
+
     const stopAutoScroll = () => {
       clearInterval(scrollInterval);
     };
-  
+
     if (scrollContainer) {
       startAutoScroll();
     }
-  
+
     return () => {
-      stopAutoScroll(); 
+      stopAutoScroll();
     };
   }, []);
-  
-  
+
+
 
   const refresh = () => {
     setHoldBooks([]);
@@ -240,6 +253,11 @@ function App() {
     setSuggestionVisible(false)
   }
 
+  const deleteBook = (id) => {
+    setBooks((prevBooks) => prevBooks.filter((book) => book.id !== id));
+    setUsrEnteredBooks((prevUsrBooks) => prevUsrBooks.filter((book) => book.id !== id))
+  }
+
 
   return (
     <div>
@@ -323,7 +341,7 @@ function App() {
       <div className='books-list'>
         <h2>Rediscover your favorite books</h2>
         {(books.length === 0 && usrEnteredBooks.length === 0) && <p className='instruction-text'>No books added yet. Start by adding a book</p>}
-        <PrintBooks books={books} usrBooks={usrEnteredBooks} />
+        <PrintBooks books={books} usrBooks={usrEnteredBooks} deleteBook={deleteBook}/>
       </div>
 
 
