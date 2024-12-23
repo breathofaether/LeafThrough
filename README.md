@@ -1,6 +1,6 @@
 # LeafThrough
 
-Leaf-through is a web application that assists users in discovering and rediscovering their favorite books. It provides functionalities for searching for books online, manually adding them to a list, receiving a surprise book recommendation from the list, and exploring a curated selection of new books.
+Leaf-through is a react.js application that assists users in discovering and rediscovering their favorite books. It provides functionalities for searching for books online, manually adding them to a list, receiving a surprise book recommendation from the list, and exploring a curated selection of new books.
 
 ## Features
 
