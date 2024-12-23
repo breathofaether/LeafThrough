@@ -46,6 +46,7 @@ function App() {
   const [showForm, setShowForm] = useState(false);
   const [modalVisible, setModalVisible] = useState(false)
   const [suggestionVisible, setSuggestionVisible] = useState(false)
+  const [addBookId, setAddBookId] = useState(null)
   const scrollContainerRef = useRef(null);
 
   const API_KEY = import.meta.env.VITE_API_KEY;
@@ -258,6 +259,14 @@ function App() {
     setUsrEnteredBooks((prevUsrBooks) => prevUsrBooks.filter((book) => book.id !== id))
   }
 
+  const handleAddBook = (book) => {
+    setAddBookId(book.id); 
+    setTimeout(() => {
+      addBook(book); 
+      setAddBookId(null);
+    }, 300); 
+  }
+
 
   return (
     <div>
@@ -301,7 +310,7 @@ function App() {
         <div className={`suggestion-list ${suggestions.length > 0 ? "visible" : ""}`}>
           <ul>
             {suggestions.map((suggestion) => (
-              <li key={suggestion.id} onClick={() => addBook(suggestion)}>
+              <li key={suggestion.id} className={`add-item ${addBookId === suggestion.id ? 'adding' : ''}`} onClick={() => handleAddBook(suggestion)}>
                 {suggestion.title}
                 {suggestion.authors && <em> by ({suggestion.authors.join(', ')})</em>}
               </li>

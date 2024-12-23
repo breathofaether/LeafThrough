@@ -109,7 +109,7 @@ h2 {
   padding: 12px;
   font-size: 1rem;
   border: 1px solid #bdbdbd;
-  border-radius: 4px;
+  border-radius: 16px;
   background-color: #fff;
   color: #212121;
   margin-top: 10px;
@@ -133,6 +133,14 @@ h2 {
 .suggestion-list {
   position: relative;
   text-align: left;
+  opacity: 0;
+  transform: translateY(-10px);
+  transition: opacity 0.3s ease, transform 0.3s ease;
+}
+
+.suggestion-list.visible {
+  opacity: 1;
+  transform: translateY(0);
 }
 
 .suggestion-list ul {
@@ -165,7 +173,7 @@ h2 {
 .manual-entry button {
   padding: 12px 16px;
   border: none;
-  border-radius: 4px;
+  border-radius: 16px;
   background-color: #009688; 
   color: white;
   font-size: 1rem;
@@ -277,3 +285,22 @@ a:hover {
   opacity: 0;
   transform: translateX(-20px); 
 }
+
+.add-item {
+  transition: transform 0.3s ease, background-color 0.3s ease;
+}
+
+.add-item.adding {
+  animation: pulse 0.3s infinite alternate;
+}
+
+@keyframes pulse {
+  from {
+    transform: scale(1);
+  }
+  to {
+    transform: scale(1.05); 
+  }
+}
+
+
