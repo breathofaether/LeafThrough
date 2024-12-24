@@ -48,6 +48,7 @@ function App() {
   const [suggestionVisible, setSuggestionVisible] = useState(false)
   const [addBookId, setAddBookId] = useState(null)
   const scrollContainerRef = useRef(null);
+  const [theme, setTheme] = useState("light");
 
   const API_KEY = import.meta.env.VITE_API_KEY;
 
@@ -267,6 +268,14 @@ function App() {
     }, 300); 
   }
 
+  const handleThemeSwitch = () => {
+    setTheme((prevTheme) => (prevTheme === "light" ? "dark" : "light"))
+  }
+
+  useEffect(() => {
+    document.body.className = theme; 
+  }, [theme]);
+  
 
   return (
     <div>
@@ -352,6 +361,8 @@ function App() {
         {(books.length === 0 && usrEnteredBooks.length === 0) && <p className='instruction-text'>No books added yet. Start by adding a book</p>}
         <PrintBooks books={books} usrBooks={usrEnteredBooks} deleteBook={deleteBook}/>
       </div>
+
+      <button className='switch-theme' onClick={handleThemeSwitch}>{theme === "light" ? "🌙" : "☀️"}</button>
 
 
       {modalVisible && <BookModal book={pick} onClose={() => setModalVisible(false)} />}
