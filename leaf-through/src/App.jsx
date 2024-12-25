@@ -4,6 +4,7 @@ import noThumbnail from "./images/no_cover.jpg";
 const PrintBooks = ({ books = ([]), usrBooks = ([]), deleteBook }) => {
   const [removingBookId, setRemovingBookId] = useState(null);
 
+
   const handleDelete = (id) => {
     setRemovingBookId(id);
     setTimeout(() => {
@@ -12,9 +13,17 @@ const PrintBooks = ({ books = ([]), usrBooks = ([]), deleteBook }) => {
     }, 300);
   };
 
+  const handleDeleteAll = () => {
+    combinedBooks.forEach((book, index) => {
+      setTimeout(() => {
+        handleDelete(book.id); 
+      }, index * 150); 
+    });
+  };
+
   const combinedBooks = [...books, ...usrBooks]
   const temp = combinedBooks.map((book) => (
-    <li key={book.id} className={`book-item ${removingBookId === book.id ? 'removing' : ''}`}>
+    <li key={book.id} className={`book-item ${removingBookId === book.id ? 'removing' : 'all'}`} >
       {book.cover && (
         <img src={book.cover} alt={book.title} />
       )}
@@ -29,14 +38,22 @@ const PrintBooks = ({ books = ([]), usrBooks = ([]), deleteBook }) => {
   ))
 
   return (
-    <ul>{temp}</ul>
+    <>
+      <ul>{temp}</ul>
+      {temp.length > 1 && <button
+        className={'remove-all'}
+        onClick={handleDeleteAll}
+      >
+        🧹 Clear All
+      </button>}
+    </>
   )
 }
 
 function App() {
   const [books, setBooks] = useState(() => {
     const storedBooks = localStorage.getItem('books');
-    return storedBooks ? JSON.parse(storedBooks) : []; 
+    return storedBooks ? JSON.parse(storedBooks) : [];
   });
   const [usrEnteredBooks, setUsrEnteredBooks] = useState(() => {
     const storedUsrEnteredBooks = localStorage.getItem('usrEnteredBooks');
@@ -58,8 +75,9 @@ function App() {
     return storedTheme || 'light';
   });
 
+
   const API_KEY = import.meta.env.VITE_API_KEY;
-  
+
   useEffect(() => {
     localStorage.setItem('books', JSON.stringify(books));
   }, [books])
@@ -143,7 +161,7 @@ function App() {
       })));
     }
   }
-  
+
 
   useEffect(() => {
     const scrollContainer = scrollContainerRef.current;
@@ -281,6 +299,7 @@ function App() {
     setUsrEnteredBooks((prevUsrBooks) => prevUsrBooks.filter((book) => book.id !== id))
   }
 
+
   const handleAddBook = (book) => {
     setAddBookId(book.id);
     setTimeout(() => {
@@ -384,7 +403,6 @@ function App() {
       </div>
 
       <button className='switch-theme' onClick={handleThemeSwitch}>{theme === "light" ? "🌙" : "☀️"}</button>
-
 
       {modalVisible && <BookModal book={pick} onClose={() => setModalVisible(false)} />}
     </div>
