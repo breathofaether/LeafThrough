@@ -1,16 +1,15 @@
 import React, { useState, useEffect, useRef } from 'react';
 import noThumbnail from "./images/no_cover.jpg";
 
-
 const PrintBooks = ({ books = ([]), usrBooks = ([]), deleteBook }) => {
   const [removingBookId, setRemovingBookId] = useState(null);
 
   const handleDelete = (id) => {
-    setRemovingBookId(id); 
+    setRemovingBookId(id);
     setTimeout(() => {
-      deleteBook(id); 
+      deleteBook(id);
       setRemovingBookId(null);
-    }, 300); 
+    }, 300);
   };
 
   const combinedBooks = [...books, ...usrBooks]
@@ -35,8 +34,14 @@ const PrintBooks = ({ books = ([]), usrBooks = ([]), deleteBook }) => {
 }
 
 function App() {
-  const [books, setBooks] = useState([]);
-  const [usrEnteredBooks, setUsrEnteredBooks] = useState([])
+  const [books, setBooks] = useState(() => {
+    const storedBooks = localStorage.getItem('books');
+    return storedBooks ? JSON.parse(storedBooks) : []; 
+  });
+  const [usrEnteredBooks, setUsrEnteredBooks] = useState(() => {
+    const storedUsrEnteredBooks = localStorage.getItem('usrEnteredBooks');
+    return storedUsrEnteredBooks ? JSON.parse(storedUsrEnteredBooks) : [];
+  });
   const [nextReads, setNextReads] = useState(null);
   const [searchInput, setSearchInput] = useState("");
   const [suggestions, setSuggestions] = useState([]);
@@ -48,9 +53,24 @@ function App() {
   const [suggestionVisible, setSuggestionVisible] = useState(false)
   const [addBookId, setAddBookId] = useState(null)
   const scrollContainerRef = useRef(null);
-  const [theme, setTheme] = useState("light");
+  const [theme, setTheme] = useState(() => {
+    const storedTheme = localStorage.getItem('theme');
+    return storedTheme || 'light';
+  });
 
   const API_KEY = import.meta.env.VITE_API_KEY;
+  
+  useEffect(() => {
+    localStorage.setItem('books', JSON.stringify(books));
+  }, [books])
+
+  useEffect(() => {
+    localStorage.setItem('usrEnteredBooks', JSON.stringify(usrEnteredBooks));
+  }, [usrEnteredBooks])
+
+  useEffect(() => {
+    localStorage.setItem('theme', theme);
+  }, [theme])
 
   function debounce(func, wait) {
     let timeout;
@@ -123,6 +143,7 @@ function App() {
       })));
     }
   }
+  
 
   useEffect(() => {
     const scrollContainer = scrollContainerRef.current;
@@ -261,11 +282,11 @@ function App() {
   }
 
   const handleAddBook = (book) => {
-    setAddBookId(book.id); 
+    setAddBookId(book.id);
     setTimeout(() => {
-      addBook(book); 
+      addBook(book);
       setAddBookId(null);
-    }, 300); 
+    }, 300);
   }
 
   const handleThemeSwitch = () => {
@@ -273,9 +294,9 @@ function App() {
   }
 
   useEffect(() => {
-    document.body.className = theme; 
+    document.body.className = theme;
   }, [theme]);
-  
+
 
   return (
     <div>
@@ -359,7 +380,7 @@ function App() {
       <div className='books-list'>
         <h2>Rediscover your favorite books</h2>
         {(books.length === 0 && usrEnteredBooks.length === 0) && <p className='instruction-text'>No books added yet. Start by adding a book</p>}
-        <PrintBooks books={books} usrBooks={usrEnteredBooks} deleteBook={deleteBook}/>
+        <PrintBooks books={books} usrBooks={usrEnteredBooks} deleteBook={deleteBook} />
       </div>
 
       <button className='switch-theme' onClick={handleThemeSwitch}>{theme === "light" ? "🌙" : "☀️"}</button>
