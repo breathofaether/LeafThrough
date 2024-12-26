@@ -16,8 +16,8 @@ const PrintBooks = ({ books = ([]), usrBooks = ([]), deleteBook }) => {
   const handleDeleteAll = () => {
     combinedBooks.forEach((book, index) => {
       setTimeout(() => {
-        handleDelete(book.id); 
-      }, index * 150); 
+        handleDelete(book.id);
+      }, index * 150);
     });
   };
 
@@ -74,9 +74,14 @@ function App() {
     const storedTheme = localStorage.getItem('theme');
     return storedTheme || 'light';
   });
+  const [isDiscoveryUnlocked, setIsDiscoveryUnlocked] = useState(false);
 
 
   const API_KEY = import.meta.env.VITE_API_KEY;
+
+  useEffect(() => {
+    setIsDiscoveryUnlocked(books.length + usrEnteredBooks.length >= 5);
+  }, [books, usrEnteredBooks])
 
   useEffect(() => {
     localStorage.setItem('books', JSON.stringify(books));
@@ -123,6 +128,7 @@ function App() {
             title: item.volumeInfo.title || "Unknown Title",
             cover: item.volumeInfo.imageLinks?.thumbnail || null,
             authors: item.volumeInfo.authors || null,
+            genre: item.volumeInfo.mainCategory || "Unknown",
             link: item.volumeInfo.infoLink || "#"
           }))
         );
@@ -137,13 +143,29 @@ function App() {
   const debouncedFetchSuggestions = debounce(fetchSuggestions, 300);
 
   const discoverBooks = async () => {
-    let queryString = 'subject: ';
-    if (genres.fiction && genres.nonFiction) {
-      queryString += 'romance+comedy+fiction'
-    } else if (genres.fiction) {
-      queryString += 'fiction'
-    } else if (genres.nonFiction) {
-      queryString += 'nonfiction'
+
+    let queryString = "";
+
+    if (books.length + usrEnteredBooks.length < 5) {
+      queryString = "romance+comedy+fiction";
+    } else {
+      const favoriteGenres = [...books, ...usrEnteredBooks]
+        .map((book) => book.genre)
+        .filter((genre) => (genre && genre !== "Unknown"))
+        .slice(0, 3)
+        .join('+')
+
+      const favoriteKeywords = [...books, ...usrEnteredBooks]
+        .map((book) => book.title.split(' ').slice(0, 2).join('+'))
+
+      const favoriteAuthors = [...books, ...usrEnteredBooks]
+        .map((book) => book.authors)
+        .filter((authors) => (authors && authors != "Unknown"))
+        .slice(0,2).join('+')
+
+      queryString = favoriteGenres || favoriteKeywords || favoriteAuthors
+        ? `${favoriteGenres}+${favoriteKeywords}`
+        : "romance+comedy+fiction";
     }
 
     let startIndex = Math.floor(Math.random() * 100);
@@ -157,6 +179,7 @@ function App() {
         title: item.volumeInfo.title,
         authors: item.volumeInfo.authors || ["Unknown Author"],
         cover: item.volumeInfo.imageLinks ? item.volumeInfo.imageLinks.thumbnail : noThumbnail,
+        genre: item.volumeInfo.mainCategory || "Unknown",
         link: item.volumeInfo.infoLink || "#"
       })));
     }
@@ -204,6 +227,12 @@ function App() {
     discoverBooks();
   }, [])
 
+  useEffect(() => {
+    if (books.length + usrEnteredBooks.length >= 5) {
+      discoverBooks();
+    }
+  }, [books, usrEnteredBooks]);
+
 
   const addBook = (book) => {
     if (!books.some(existingBook => existingBook.id === book.id)) {
@@ -221,12 +250,14 @@ function App() {
     const title = event.target.title.value;
     const authors = event.target.authors.value.split(',').map(author => author.trim());
     const link = event.target.link.value;
+    const genre = event.target.genre.value;
 
     const book = {
       id: Date.now(),
       title: title || "N/A",
       authors: authors || ["Unknown Author"],
       cover: noThumbnail,
+      genre: genre || "Unknown",
       link: link || "#"
     }
 
@@ -326,22 +357,30 @@ function App() {
         Explore interesting reads in the 'Discover' section to find books you might love.
       </strong>
 
+
+
       <div className='discover-books'>
-        <h2>Discover</h2>
-        <div className='primary-scroll' ref={scrollContainerRef}>
-          {holdBooks.map(book => (
-            <div className="secondary-scroll" key={book.id} onClick={() => handleSuggestionOpen(book)}>
-              <img src={book.cover || noThumbnail} alt={book.title} />
-            </div>
-          ))}
-          {holdBooks.map(book => (
-            <div className="secondary-scroll" key={book.id + 'clone'} onClick={() => handleSuggestionOpen(book)}>
-              <img src={book.cover || noThumbnail} alt={book.title} />
-            </div>
-          ))}
+        {!isDiscoveryUnlocked && (
+          <strong className="unlock-message">Unlock this section by adding {5 - (books.length + usrEnteredBooks.length)} or more books in the Favorites section!</strong>
+        )}
+        <div className={`discover-books ${!isDiscoveryUnlocked ? 'locked' : ''}`}>
+          <h2>Discover</h2>
+          <div className='primary-scroll' ref={scrollContainerRef}>
+            {holdBooks.map(book => (
+              <div className="secondary-scroll" key={book.id} onClick={() => handleSuggestionOpen(book)}>
+                <img src={book.cover || noThumbnail} alt={book.title} />
+              </div>
+            ))}
+            {holdBooks.map(book => (
+              <div className="secondary-scroll" key={book.id + 'clone'} onClick={() => handleSuggestionOpen(book)}>
+                <img src={book.cover || noThumbnail} alt={book.title} />
+              </div>
+            ))}
+          </div>
+          <button className='refresh' onClick={refresh}>🔄</button>
+          {suggestionVisible && nextReads && (<Suggest book={nextReads} onClose={handleCloseSuggestion} />)}
         </div>
-        <button className='refresh' onClick={refresh}>🔄</button>
-        {suggestionVisible && nextReads && (<Suggest book={nextReads} onClose={handleCloseSuggestion} />)}
+
       </div>
 
       <h2>Add to favorites</h2>
@@ -382,6 +421,12 @@ function App() {
                 name='authors'
                 type='text'
                 placeholder='Enter authors, separated by commas'
+                required
+              />
+              <input
+                name='genre'
+                type='text'
+                placeholder='Enter genre'
                 required
               />
               <input
