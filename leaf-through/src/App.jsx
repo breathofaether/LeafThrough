@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import noThumbnail from "./images/no_cover.jpg";
+import authors from './authors.json';
 
 const PrintBooks = ({ books = ([]), usrBooks = ([]), deleteBook }) => {
   const [removingBookId, setRemovingBookId] = useState(null);
@@ -80,7 +81,7 @@ function App() {
   const API_KEY = import.meta.env.VITE_API_KEY;
 
   useEffect(() => {
-    setIsDiscoveryUnlocked(books.length + usrEnteredBooks.length >= 5);
+    setIsDiscoveryUnlocked(books.length + usrEnteredBooks.length >= 3);
   }, [books, usrEnteredBooks])
 
   useEffect(() => {
@@ -144,31 +145,25 @@ function App() {
 
   const discoverBooks = async () => {
 
-    let queryString = "";
+    let selectedAuthors = [];
+    const totalAuthors = authors.length;
 
-    if (books.length + usrEnteredBooks.length < 5) {
-      queryString = "romance+comedy+fiction";
-    } else {
-      const favoriteGenres = [...books, ...usrEnteredBooks]
-        .map((book) => book.genre)
-        .filter((genre) => (genre && genre !== "Unknown"))
-        .slice(0, 3)
-        .join('+')
+    while (selectedAuthors.length < 5) {
+      const randomIndex = Math.floor(Math.random() * totalAuthors);
+      const randomAuthor = authors[randomIndex]
 
-      const favoriteKeywords = [...books, ...usrEnteredBooks]
-        .map((book) => book.title.split(' ').slice(0, 2).join('+'))
-
-      const favoriteAuthors = [...books, ...usrEnteredBooks]
-        .map((book) => book.authors)
-        .filter((authors) => (authors && authors != "Unknown"))
-        .slice(0,2).join('+')
-
-      queryString = favoriteGenres || favoriteKeywords || favoriteAuthors
-        ? `${favoriteGenres}+${favoriteKeywords}`
-        : "romance+comedy+fiction";
+      if (!selectedAuthors.includes(randomAuthor.name)) {
+        selectedAuthors = [...selectedAuthors, randomAuthor.name]; 
+      }
     }
 
-    let startIndex = Math.floor(Math.random() * 100);
+    const favoriteAuthors = selectedAuthors
+    .map((author) => author.replace(/\s+/g, '+')) 
+    .join('+');
+
+    const queryString = `${favoriteAuthors}`; 
+
+    let startIndex = Math.floor(Math.random() * 10);
 
     const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${queryString}&startIndex=${startIndex}&maxResults=9&key=${API_KEY}`)
     const data = await response.json();
@@ -217,7 +212,6 @@ function App() {
   }, []);
 
 
-
   const refresh = () => {
     setHoldBooks([]);
     discoverBooks();
@@ -226,13 +220,6 @@ function App() {
   useEffect(() => {
     discoverBooks();
   }, [])
-
-  useEffect(() => {
-    if (books.length + usrEnteredBooks.length >= 5) {
-      discoverBooks();
-    }
-  }, [books, usrEnteredBooks]);
-
 
   const addBook = (book) => {
     if (!books.some(existingBook => existingBook.id === book.id)) {
@@ -361,7 +348,7 @@ function App() {
 
       <div className='discover-books'>
         {!isDiscoveryUnlocked && (
-          <strong className="unlock-message">Unlock this section by adding {5 - (books.length + usrEnteredBooks.length)} or more books in the Favorites section!</strong>
+          <strong className="unlock-message">Unlock this section by adding {3 - (books.length + usrEnteredBooks.length)} or more books in the Favorites section!</strong>
         )}
         <div className={`discover-books ${!isDiscoveryUnlocked ? 'locked' : ''}`}>
           <h2>Discover</h2>
