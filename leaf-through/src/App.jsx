@@ -163,7 +163,7 @@ function App() {
 
     const queryString = `${favoriteAuthors}`; 
 
-    let startIndex = Math.floor(Math.random() * 10);
+    let startIndex = Math.floor(Math.random() * 50);
 
     const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${queryString}&startIndex=${startIndex}&maxResults=9&key=${API_KEY}`)
     const data = await response.json();
