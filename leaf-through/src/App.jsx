@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 import noThumbnail from "./images/no_cover.jpg";
-import authors from './authors.json';
 
-const PrintBooks = ({ books = ([]), usrBooks = ([]), deleteBook }) => {
+const PrintBooks = ({ books = ([]), usrBooks = ([]), readLater=([]) ,deleteBook }) => {
   const [removingBookId, setRemovingBookId] = useState(null);
 
 
@@ -22,7 +23,7 @@ const PrintBooks = ({ books = ([]), usrBooks = ([]), deleteBook }) => {
     });
   };
 
-  const combinedBooks = [...books, ...usrBooks]
+  const combinedBooks = [...books, ...usrBooks, ...readLater]
   const temp = combinedBooks.map((book) => (
     <li key={book.id} className={`book-item ${removingBookId === book.id ? 'removing' : 'all'}`} >
       {book.cover && (
@@ -60,6 +61,11 @@ function App() {
     const storedUsrEnteredBooks = localStorage.getItem('usrEnteredBooks');
     return storedUsrEnteredBooks ? JSON.parse(storedUsrEnteredBooks) : [];
   });
+  const [readLater, setReadLater] = useState(() => {
+    const storedReadLaterBooks = localStorage.getItem('readLaterBooks');
+    return storedReadLaterBooks ? JSON.parse(storedReadLaterBooks) : [];
+  });
+
   const [nextReads, setNextReads] = useState(null);
   const [searchInput, setSearchInput] = useState("");
   const [suggestions, setSuggestions] = useState([]);
@@ -91,6 +97,11 @@ function App() {
   useEffect(() => {
     localStorage.setItem('usrEnteredBooks', JSON.stringify(usrEnteredBooks));
   }, [usrEnteredBooks])
+
+  useEffect(() => {
+    localStorage.setItem('readLaterBooks', JSON.stringify(readLater));
+  }, [readLater])
+
 
   useEffect(() => {
     localStorage.setItem('theme', theme);
@@ -145,25 +156,8 @@ function App() {
 
   const discoverBooks = async () => {
 
-    let selectedAuthors = [];
-    const totalAuthors = authors.length;
-
-    while (selectedAuthors.length < 5) {
-      const randomIndex = Math.floor(Math.random() * totalAuthors);
-      const randomAuthor = authors[randomIndex]
-
-      if (!selectedAuthors.includes(randomAuthor.name)) {
-        selectedAuthors = [...selectedAuthors, randomAuthor.name]; 
-      }
-    }
-
-    const favoriteAuthors = selectedAuthors
-    .map((author) => author.replace(/\s+/g, '+')) 
-    .join('+');
-
-    const queryString = `${favoriteAuthors}`; 
-
-    let startIndex = Math.floor(Math.random() * 50);
+    const queryString = "subject:fiction+nonfiction";
+    const startIndex = Math.floor(Math.random() * 50);
 
     const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${queryString}&startIndex=${startIndex}&maxResults=9&key=${API_KEY}`)
     const data = await response.json();
@@ -226,8 +220,19 @@ function App() {
       setSearchInput("");
       setSuggestions([])
       setBooks([...books, book]);
+      toast.success(`${book.title} has been added to your Favorites list.`);
     } else {
-      alert("This book is already in your list.");
+      toast.error(`${book.title} is already in your list`);
+    }
+  }
+
+  const addBookToReadLater = (book) => {
+    if (!readLater.some(existingBook => existingBook.id === book.id)) {
+      setReadLater([...readLater, book]);
+      toast.success(`${book.title} has been added to your Read Later list.`);
+      setSuggestionVisible(false)
+    } else {
+      toast.error(`${book.title} is already in your list`);
     }
   }
 
@@ -251,8 +256,9 @@ function App() {
     if (!usrEnteredBooks.some(existingBook => existingBook.id === book.id)) {
       setUsrEnteredBooks([...usrEnteredBooks, book]);
       setShowForm(false);
+      toast.success(`${book.title} has been added to your Favorites list.`);
     } else {
-      alert("This book is already in your list.");
+      toast.error(`${book.title} is already in your list`);
     }
   }
 
@@ -289,7 +295,7 @@ function App() {
     )
   }
 
-  const Suggest = ({ book, onClose }) => {
+  const Suggest = ({ book, onClose, onAddToReadLater }) => {
     return (
       <div className='suggest'>
         <button className='suggest-close' onClick={onClose}>X</button>
@@ -298,6 +304,9 @@ function App() {
           <h2><a href={book.link} target='_blank' rel="noopener noreferrer">{book.title}</a></h2>
           <strong>by {book.authors}</strong>
           <p>Discover this book and enjoy your reading journey!</p>
+          <button className='add-to-read-later' onClick={() => onAddToReadLater(book)}>
+            +
+          </button>
         </>
       </div>
     )
@@ -315,6 +324,7 @@ function App() {
   const deleteBook = (id) => {
     setBooks((prevBooks) => prevBooks.filter((book) => book.id !== id));
     setUsrEnteredBooks((prevUsrBooks) => prevUsrBooks.filter((book) => book.id !== id))
+    setReadLater((prevBooks) => prevBooks.filter((book) => book.id !== id));
   }
 
 
@@ -365,7 +375,7 @@ function App() {
             ))}
           </div>
           <button className='refresh' onClick={refresh}>🔄</button>
-          {suggestionVisible && nextReads && (<Suggest book={nextReads} onClose={handleCloseSuggestion} />)}
+          {suggestionVisible && nextReads && (<Suggest book={nextReads} onClose={handleCloseSuggestion} onAddToReadLater={addBookToReadLater}/>)}
         </div>
 
       </div>
@@ -434,9 +444,17 @@ function App() {
         <PrintBooks books={books} usrBooks={usrEnteredBooks} deleteBook={deleteBook} />
       </div>
 
+      <div className='books-list'>
+        <h2>Read Later</h2>
+        {(readLater.length === 0) && <p className='instruction-text'>No books added yet. Start by adding a book</p>}
+        <PrintBooks readLater={readLater} deleteBook={deleteBook} />
+      </div>
+
       <button className='switch-theme' onClick={handleThemeSwitch}>{theme === "light" ? "🌙" : "☀️"}</button>
 
       {modalVisible && <BookModal book={pick} onClose={() => setModalVisible(false)} />}
+      
+      <ToastContainer />
     </div>
   );
 }
