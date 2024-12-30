@@ -244,6 +244,10 @@ body.dark .suggest {
   background-color: #282828;
 }
 
+body.dark .modal {
+  background-color: #282828;
+}
+
 .modal img,
 .suggest img {
   width: 128px;
