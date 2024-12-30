@@ -3,7 +3,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import noThumbnail from "./images/no_cover.jpg";
 
-const PrintBooks = ({ books = ([]), usrBooks = ([]), readLater=([]) ,deleteBook }) => {
+const PrintBooks = ({ books = ([]), usrBooks = ([]), readLater = ([]), deleteBook }) => {
   const [removingBookId, setRemovingBookId] = useState(null);
 
 
@@ -81,14 +81,10 @@ function App() {
     const storedTheme = localStorage.getItem('theme');
     return storedTheme || 'light';
   });
-  const [isDiscoveryUnlocked, setIsDiscoveryUnlocked] = useState(false);
+
 
 
   const API_KEY = import.meta.env.VITE_API_KEY;
-
-  useEffect(() => {
-    setIsDiscoveryUnlocked(books.length + usrEnteredBooks.length >= 3);
-  }, [books, usrEnteredBooks])
 
   useEffect(() => {
     localStorage.setItem('books', JSON.stringify(books));
@@ -141,7 +137,7 @@ function App() {
             cover: item.volumeInfo.imageLinks?.thumbnail || null,
             authors: item.volumeInfo.authors || null,
             genre: item.volumeInfo.mainCategory || "Unknown",
-            link: item.volumeInfo.infoLink || "#"
+            link: item.volumeInfo.infoLink || "#",
           }))
         );
       } else {
@@ -157,7 +153,7 @@ function App() {
   const discoverBooks = async () => {
 
     const queryString = "subject:fiction+nonfiction";
-    const startIndex = Math.floor(Math.random() * 50);
+    const startIndex = Math.floor(Math.random() * 100);
 
     const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${queryString}&startIndex=${startIndex}&maxResults=9&key=${API_KEY}`)
     const data = await response.json();
@@ -169,7 +165,7 @@ function App() {
         authors: item.volumeInfo.authors || ["Unknown Author"],
         cover: item.volumeInfo.imageLinks ? item.volumeInfo.imageLinks.thumbnail : noThumbnail,
         genre: item.volumeInfo.mainCategory || "Unknown",
-        link: item.volumeInfo.infoLink || "#"
+        link: item.volumeInfo.infoLink || "#",
       })));
     }
   }
@@ -278,6 +274,8 @@ function App() {
   }
 
 
+
+
   const BookModal = ({ book, onClose }) => {
     return (
       <div className='modal'>
@@ -287,7 +285,7 @@ function App() {
         ) : (
           <>
             {book.cover && <img src={book.cover} alt={`${book.title} cover`} />}
-            <h2>{book.title}</h2>
+            <h2><a href={book.link} target='_blank' rel="noopener noreferrer">{book.title}</a></h2>
             <p>Rediscover this book and enjoy your reading journey!</p>
           </>
         )}
@@ -353,31 +351,23 @@ function App() {
         When you're ready, click the BookBuddy logo for a surprise pick!
         Explore interesting reads in the 'Discover' section to find books you might love.
       </strong>
-
-
-
+      
       <div className='discover-books'>
-        {!isDiscoveryUnlocked && (
-          <strong className="unlock-message">Unlock this section by adding {3 - (books.length + usrEnteredBooks.length)} or more books in the Favorites section!</strong>
-        )}
-        <div className={`discover-books ${!isDiscoveryUnlocked ? 'locked' : ''}`}>
-          <h2>Discover</h2>
-          <div className='primary-scroll' ref={scrollContainerRef}>
-            {holdBooks.map(book => (
-              <div className="secondary-scroll" key={book.id} onClick={() => handleSuggestionOpen(book)}>
-                <img src={book.cover || noThumbnail} alt={book.title} />
-              </div>
-            ))}
-            {holdBooks.map(book => (
-              <div className="secondary-scroll" key={book.id + 'clone'} onClick={() => handleSuggestionOpen(book)}>
-                <img src={book.cover || noThumbnail} alt={book.title} />
-              </div>
-            ))}
-          </div>
-          <button className='refresh' onClick={refresh}>🔄</button>
-          {suggestionVisible && nextReads && (<Suggest book={nextReads} onClose={handleCloseSuggestion} onAddToReadLater={addBookToReadLater}/>)}
+        <h2>Discover</h2>
+        <div className='primary-scroll' ref={scrollContainerRef}>
+          {holdBooks.map(book => (
+            <div className="secondary-scroll" key={book.id} onClick={() => handleSuggestionOpen(book)}>
+              <img src={book.cover || noThumbnail} alt={book.title} />
+            </div>
+          ))}
+          {holdBooks.map(book => (
+            <div className="secondary-scroll" key={book.id + 'clone'} onClick={() => handleSuggestionOpen(book)}>
+              <img src={book.cover || noThumbnail} alt={book.title} />
+            </div>
+          ))}
         </div>
-
+        <button className='refresh' onClick={refresh}>🔄</button>
+        {suggestionVisible && nextReads && (<Suggest book={nextReads} onClose={handleCloseSuggestion} onAddToReadLater={addBookToReadLater} />)}
       </div>
 
       <h2>Add to favorites</h2>
@@ -453,7 +443,7 @@ function App() {
       <button className='switch-theme' onClick={handleThemeSwitch}>{theme === "light" ? "🌙" : "☀️"}</button>
 
       {modalVisible && <BookModal book={pick} onClose={() => setModalVisible(false)} />}
-      
+
       <ToastContainer />
     </div>
   );

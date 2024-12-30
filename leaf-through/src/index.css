@@ -390,19 +390,6 @@ body {
   transform: scale(0.95);
 }
 
-.discover-books.locked {
-  filter: blur(10px);
-  pointer-events: none;
-}
-
-
-.unlock-message {
-  text-align: center;
-  font-size: 1rem;
-  color: #555;
-  margin-bottom: 1em;
-}
-
 .add-to-read-later {
   background-color: #007bff;
   color: white;
