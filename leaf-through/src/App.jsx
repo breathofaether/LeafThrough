@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import noThumbnail from "./images/no_cover.jpg";
+import { quotes } from './quotes';
 
 const PrintBooks = ({ books = ([]), usrBooks = ([]), readLater = ([]), deleteBook, notes, handleAddOrEditNote }) => {
   const [removingBookId, setRemovingBookId] = useState(null);
@@ -90,7 +91,7 @@ function App() {
   const [suggestionVisible, setSuggestionVisible] = useState(false)
   const [addBookId, setAddBookId] = useState(null)
   const scrollContainerRef = useRef(null);
-
+  const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
 
 
 
@@ -120,6 +121,13 @@ function App() {
   useEffect(() => {
     document.body.className = theme;
   }, [theme]);
+
+  useEffect(() => {
+    const quoteInterval = setInterval(() => {
+      setCurrentQuoteIndex((prevIndex) => (prevIndex + 1) % quotes.length)
+    }, 600000)
+    return () => clearInterval(quoteInterval);
+  }, [])
 
   function debounce(func, wait) {
     let timeout;
@@ -378,6 +386,7 @@ function App() {
   return (
     <div>
       <h2 className='title' onClick={() => pickABook(books, usrEnteredBooks)}>LeafThrough</h2>
+      <h3 className="quote">{quotes[currentQuoteIndex]}</h3>
       <strong className="instruction-text">
         Add your favorite books to the collection using the search bar or manual entry in the 'Add to Favorites' section.
         When you're ready, click the BookBuddy logo for a surprise pick!
