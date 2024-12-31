@@ -472,7 +472,7 @@ function App() {
               onChange={(e) => setCurrentNote(e.target.value)}
               placeholder='Enter your note here'
             />
-            <button className="note-button" onClick={handleSaveNote}>Save Note</button>
+            <button className="note-button" onClick={handleSaveNote}>Save</button>
             <button className="note-button" onClick={handleCancelEdit}>Cancel</button>
           </div>
         )}

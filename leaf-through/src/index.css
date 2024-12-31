@@ -458,6 +458,11 @@ body {
   top: -0.4em; 
 }
 
+body.dark .note-drawer {
+  background: #333232;
+  border-top: 1px solid #413d3d;
+}
+
 .note-button.subscript {
   top: 0.4em; 
 }
