@@ -390,19 +390,6 @@ body {
   transform: scale(0.95);
 }
 
-.discover-books.locked {
-  filter: blur(10px);
-  pointer-events: none;
-}
-
-
-.unlock-message {
-  text-align: center;
-  font-size: 1rem;
-  color: #555;
-  margin-bottom: 1em;
-}
-
 .add-to-read-later {
   background-color: #007bff;
   color: white;
@@ -421,5 +408,70 @@ body {
 
 .add-to-read-later:hover {
   background-color: #0056b3;
+}
+
+.note-drawer {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #fff;
+  border-top: 1px solid #ddd;
+  padding: 20px;
+  box-shadow: 0 -2px 5px rgba(0, 0, 0, 0.1);
+  animation: slideUp 0.3s ease-out;
+}
+
+.note-drawer h3 {
+  margin-bottom: 10px;
+}
+
+.note-drawer textarea {
+  width: 100%;
+  height: 80px;
+  margin-bottom: 10px;
+}
+
+.note-drawer button {
+  margin-right: 10px;
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+
+.note-button {
+  background: none;
+  color: #007bff;
+  border: none;
+  font-size: 12px;
+  font-weight: normal;
+  cursor: pointer;
+  text-decoration: none;
+  transition: color 0.3s ease, text-decoration 0.3s ease;
+  position: relative;
+  top: -0.4em; 
+}
+
+.note-button.subscript {
+  top: 0.4em; 
+}
+
+.note-button:hover {
+  color: #0056b3;
+  text-decoration: underline;
+}
+
+.note-button:active {
+  color: #003f94;
+}
+
+.note-button:not(:last-child) {
+  margin-right: 5px;
 }
 

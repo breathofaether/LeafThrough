@@ -3,7 +3,7 @@ import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import noThumbnail from "./images/no_cover.jpg";
 
-const PrintBooks = ({ books = ([]), usrBooks = ([]), readLater=([]) ,deleteBook }) => {
+const PrintBooks = ({ books = ([]), usrBooks = ([]), readLater = ([]), deleteBook, notes, handleAddOrEditNote }) => {
   const [removingBookId, setRemovingBookId] = useState(null);
 
 
@@ -33,6 +33,7 @@ const PrintBooks = ({ books = ([]), usrBooks = ([]), readLater=([]) ,deleteBook 
       {book.authors && (
         <em> by {book.authors.join(', ')} </em>
       )}
+      <button className="note-button" onClick={() => handleAddOrEditNote(book.id)}>{notes[book.id] ? "Edit Note" : "Add Note"}</button>
       <button className='delete-button' onClick={() => handleDelete(book.id)}>
         ❌
       </button>
@@ -66,6 +67,18 @@ function App() {
     return storedReadLaterBooks ? JSON.parse(storedReadLaterBooks) : [];
   });
 
+  const [notes, setNotes] = useState(() => {
+    const storedNotes = localStorage.getItem('notes');
+    return storedNotes ? JSON.parse(storedNotes) : {};
+  });
+
+  const [theme, setTheme] = useState(() => {
+    const storedTheme = localStorage.getItem('theme');
+    return storedTheme || 'light';
+  });
+
+  const [editingBookId, setEditingBookId] = useState(null);
+  const [currentNote, setCurrentNote] = useState("")
   const [nextReads, setNextReads] = useState(null);
   const [searchInput, setSearchInput] = useState("");
   const [suggestions, setSuggestions] = useState([]);
@@ -77,18 +90,11 @@ function App() {
   const [suggestionVisible, setSuggestionVisible] = useState(false)
   const [addBookId, setAddBookId] = useState(null)
   const scrollContainerRef = useRef(null);
-  const [theme, setTheme] = useState(() => {
-    const storedTheme = localStorage.getItem('theme');
-    return storedTheme || 'light';
-  });
-  const [isDiscoveryUnlocked, setIsDiscoveryUnlocked] = useState(false);
+
+
 
 
   const API_KEY = import.meta.env.VITE_API_KEY;
-
-  useEffect(() => {
-    setIsDiscoveryUnlocked(books.length + usrEnteredBooks.length >= 3);
-  }, [books, usrEnteredBooks])
 
   useEffect(() => {
     localStorage.setItem('books', JSON.stringify(books));
@@ -102,10 +108,18 @@ function App() {
     localStorage.setItem('readLaterBooks', JSON.stringify(readLater));
   }, [readLater])
 
+  useEffect(() => {
+    localStorage.setItem('notes', JSON.stringify(notes));
+  }, [notes])
+
 
   useEffect(() => {
     localStorage.setItem('theme', theme);
   }, [theme])
+
+  useEffect(() => {
+    document.body.className = theme;
+  }, [theme]);
 
   function debounce(func, wait) {
     let timeout;
@@ -141,7 +155,7 @@ function App() {
             cover: item.volumeInfo.imageLinks?.thumbnail || null,
             authors: item.volumeInfo.authors || null,
             genre: item.volumeInfo.mainCategory || "Unknown",
-            link: item.volumeInfo.infoLink || "#"
+            link: item.volumeInfo.infoLink || "#",
           }))
         );
       } else {
@@ -157,7 +171,7 @@ function App() {
   const discoverBooks = async () => {
 
     const queryString = "subject:fiction+nonfiction";
-    const startIndex = Math.floor(Math.random() * 50);
+    const startIndex = Math.floor(Math.random() * 100);
 
     const response = await fetch(`https://www.googleapis.com/books/v1/volumes?q=${queryString}&startIndex=${startIndex}&maxResults=9&key=${API_KEY}`)
     const data = await response.json();
@@ -169,7 +183,7 @@ function App() {
         authors: item.volumeInfo.authors || ["Unknown Author"],
         cover: item.volumeInfo.imageLinks ? item.volumeInfo.imageLinks.thumbnail : noThumbnail,
         genre: item.volumeInfo.mainCategory || "Unknown",
-        link: item.volumeInfo.infoLink || "#"
+        link: item.volumeInfo.infoLink || "#",
       })));
     }
   }
@@ -214,6 +228,8 @@ function App() {
   useEffect(() => {
     discoverBooks();
   }, [])
+
+
 
   const addBook = (book) => {
     if (!books.some(existingBook => existingBook.id === book.id)) {
@@ -278,6 +294,8 @@ function App() {
   }
 
 
+
+
   const BookModal = ({ book, onClose }) => {
     return (
       <div className='modal'>
@@ -287,7 +305,7 @@ function App() {
         ) : (
           <>
             {book.cover && <img src={book.cover} alt={`${book.title} cover`} />}
-            <h2>{book.title}</h2>
+            <h2><a href={book.link} target='_blank' rel="noopener noreferrer">{book.title}</a></h2>
             <p>Rediscover this book and enjoy your reading journey!</p>
           </>
         )}
@@ -340,10 +358,22 @@ function App() {
     setTheme((prevTheme) => (prevTheme === "light" ? "dark" : "light"))
   }
 
-  useEffect(() => {
-    document.body.className = theme;
-  }, [theme]);
+  const handleAddOrEditNote = (bookId) => {
+    setEditingBookId(bookId)
+    setCurrentNote(notes[bookId] || "")
+  }
 
+  const handleSaveNote = () => {
+    setNotes({ ...notes, [editingBookId]: currentNote })
+    toast.success("Note saved!")
+    setEditingBookId(null)
+    setCurrentNote("")
+  }
+
+  const handleCancelEdit = () => {
+    setEditingBookId(null)
+    setCurrentNote("")
+  }
 
   return (
     <div>
@@ -354,30 +384,22 @@ function App() {
         Explore interesting reads in the 'Discover' section to find books you might love.
       </strong>
 
-
-
       <div className='discover-books'>
-        {!isDiscoveryUnlocked && (
-          <strong className="unlock-message">Unlock this section by adding {3 - (books.length + usrEnteredBooks.length)} or more books in the Favorites section!</strong>
-        )}
-        <div className={`discover-books ${!isDiscoveryUnlocked ? 'locked' : ''}`}>
-          <h2>Discover</h2>
-          <div className='primary-scroll' ref={scrollContainerRef}>
-            {holdBooks.map(book => (
-              <div className="secondary-scroll" key={book.id} onClick={() => handleSuggestionOpen(book)}>
-                <img src={book.cover || noThumbnail} alt={book.title} />
-              </div>
-            ))}
-            {holdBooks.map(book => (
-              <div className="secondary-scroll" key={book.id + 'clone'} onClick={() => handleSuggestionOpen(book)}>
-                <img src={book.cover || noThumbnail} alt={book.title} />
-              </div>
-            ))}
-          </div>
-          <button className='refresh' onClick={refresh}>🔄</button>
-          {suggestionVisible && nextReads && (<Suggest book={nextReads} onClose={handleCloseSuggestion} onAddToReadLater={addBookToReadLater}/>)}
+        <h2>Discover</h2>
+        <div className='primary-scroll' ref={scrollContainerRef}>
+          {holdBooks.map(book => (
+            <div className="secondary-scroll" key={book.id} onClick={() => handleSuggestionOpen(book)}>
+              <img src={book.cover || noThumbnail} alt={book.title} />
+            </div>
+          ))}
+          {holdBooks.map(book => (
+            <div className="secondary-scroll" key={book.id + 'clone'} onClick={() => handleSuggestionOpen(book)}>
+              <img src={book.cover || noThumbnail} alt={book.title} />
+            </div>
+          ))}
         </div>
-
+        <button className='refresh' onClick={refresh}>🔄</button>
+        {suggestionVisible && nextReads && (<Suggest book={nextReads} onClose={handleCloseSuggestion} onAddToReadLater={addBookToReadLater} />)}
       </div>
 
       <h2>Add to favorites</h2>
@@ -441,19 +463,31 @@ function App() {
       <div className='books-list'>
         <h2>Rediscover your favorite books</h2>
         {(books.length === 0 && usrEnteredBooks.length === 0) && <p className='instruction-text'>No books added yet. Start by adding a book</p>}
-        <PrintBooks books={books} usrBooks={usrEnteredBooks} deleteBook={deleteBook} />
+        <PrintBooks books={books} usrBooks={usrEnteredBooks} deleteBook={deleteBook} notes={notes} handleAddOrEditNote={handleAddOrEditNote} />
+        {editingBookId && (
+          <div className='note-drawer'>
+            <h3>{books.find(book => book.id === editingBookId)?.title}</h3>
+            <textarea
+              value={currentNote}
+              onChange={(e) => setCurrentNote(e.target.value)}
+              placeholder='Enter your note here'
+            />
+            <button className="note-button" onClick={handleSaveNote}>Save Note</button>
+            <button className="note-button" onClick={handleCancelEdit}>Cancel</button>
+          </div>
+        )}
       </div>
 
       <div className='books-list'>
         <h2>Read Later</h2>
         {(readLater.length === 0) && <p className='instruction-text'>No books added yet. Start by adding a book</p>}
-        <PrintBooks readLater={readLater} deleteBook={deleteBook} />
+        <PrintBooks readLater={readLater} deleteBook={deleteBook} notes={notes} handleAddOrEditNote={handleAddOrEditNote} />
       </div>
 
       <button className='switch-theme' onClick={handleThemeSwitch}>{theme === "light" ? "🌙" : "☀️"}</button>
 
       {modalVisible && <BookModal book={pick} onClose={() => setModalVisible(false)} />}
-      
+
       <ToastContainer />
     </div>
   );
