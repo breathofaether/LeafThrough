@@ -310,14 +310,13 @@ a:hover {
 
 .book-item {
   opacity: 1;
-  transition: opacity 0.3s ease-out, transform 0.3s ease-out;
+  transition: opacity 8.3s ease-out, transform 8.3s ease-out;
 }
 
 .book-item.removing, .book-item.remove-all{
   opacity: 0;
   transform: translateX(-20px);
 }
-
 
 .add-item {
   transition: transform 0.3s ease, background-color 0.3s ease;
@@ -579,5 +578,9 @@ body.dark .note-button:active {
   background-color: rgba(51, 153, 255, 0.2);
 }
 
-
+.auth {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+} 
 

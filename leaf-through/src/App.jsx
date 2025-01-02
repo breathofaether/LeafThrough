@@ -2,7 +2,9 @@ import React, { useState, useEffect, useRef } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import noThumbnail from "./images/no_cover.jpg";
-import { quotes } from './quotes';
+import { quotes } from './quotes/quotes';
+import { collection, doc, setDoc, deleteDoc, getDocs } from "firebase/firestore";
+import { db } from "./backend/firebase";
 
 const PrintBooks = ({ books = ([]), usrBooks = ([]), readLater = ([]), deleteBook, notes, handleAddOrEditNote }) => {
   const [removingBookId, setRemovingBookId] = useState(null);
@@ -13,7 +15,7 @@ const PrintBooks = ({ books = ([]), usrBooks = ([]), readLater = ([]), deleteBoo
     setTimeout(() => {
       deleteBook(id);
       setRemovingBookId(null);
-    }, 300);
+    }, 150);
   };
 
   const handleDeleteAll = () => {
@@ -55,18 +57,13 @@ const PrintBooks = ({ books = ([]), usrBooks = ([]), readLater = ([]), deleteBoo
 }
 
 function App() {
-  const [books, setBooks] = useState(() => {
-    const storedBooks = localStorage.getItem('books');
-    return storedBooks ? JSON.parse(storedBooks) : [];
-  });
+  const [books, setBooks] = useState([])
   const [usrEnteredBooks, setUsrEnteredBooks] = useState(() => {
     const storedUsrEnteredBooks = localStorage.getItem('usrEnteredBooks');
     return storedUsrEnteredBooks ? JSON.parse(storedUsrEnteredBooks) : [];
   });
-  const [readLater, setReadLater] = useState(() => {
-    const storedReadLaterBooks = localStorage.getItem('readLaterBooks');
-    return storedReadLaterBooks ? JSON.parse(storedReadLaterBooks) : [];
-  });
+
+  const [readLater, setReadLater] = useState([]);
 
   const [notes, setNotes] = useState(() => {
     const storedNotes = localStorage.getItem('notes');
@@ -85,7 +82,6 @@ function App() {
   const [suggestions, setSuggestions] = useState([]);
   const [holdBooks, setHoldBooks] = useState([]);
   const [pick, setPick] = useState(null);
-  const genres = { fiction: true, nonFiction: true };
   const [showForm, setShowForm] = useState(false);
   const [modalVisible, setModalVisible] = useState(false)
   const [suggestionVisible, setSuggestionVisible] = useState(false)
@@ -98,20 +94,71 @@ function App() {
   const API_KEY = import.meta.env.VITE_API_KEY;
 
   useEffect(() => {
-    localStorage.setItem('books', JSON.stringify(books));
-  }, [books])
+    const fetchBooks = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "books"));
+        const booksFromFirestore = querySnapshot.docs.map((doc) => ({
+          ...doc.data(),
+          id: doc.id,
+        }));
+        setBooks(booksFromFirestore);
+      } catch (error) {
+        console.error("Error fetching books: ", error);
+      }
+    };
+    fetchBooks();
+  }, []);
+
 
   useEffect(() => {
-    localStorage.setItem('usrEnteredBooks', JSON.stringify(usrEnteredBooks));
-  }, [usrEnteredBooks])
+    const fetchReadLaterBooks = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "readLater"));
+        const booksFromFirestore = querySnapshot.docs.map((doc) => ({
+          ...doc.data(),
+          id: doc.id,
+        }));
+        setReadLater(booksFromFirestore);
+      } catch (error) {
+        console.error("Error fetching books: ", error);
+      }
+    };
+    fetchReadLaterBooks();
+  }, []);
+
 
   useEffect(() => {
-    localStorage.setItem('readLaterBooks', JSON.stringify(readLater));
-  }, [readLater])
+    const fetchUsrEnteredBooks = async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "usrEnteredBooks"));
+        const booksFromFirestore = querySnapshot.docs.map((doc) => ({
+          ...doc.data(),
+          id: doc.id,
+        }));
+        setUsrEnteredBooks(booksFromFirestore);
+      } catch (error) {
+        console.error("Error fetching books: ", error);
+      }
+    };
+    fetchUsrEnteredBooks();
+  }, []);
+
 
   useEffect(() => {
-    localStorage.setItem('notes', JSON.stringify(notes));
-  }, [notes])
+    const fetchNotes= async () => {
+      try {
+        const querySnapshot = await getDocs(collection(db, "notes"));
+        const notesFromFirestore = {};
+        querySnapshot.forEach((doc) => {
+          notesFromFirestore[doc.id] = doc.data().note; 
+        });
+        setNotes(notesFromFirestore);
+      } catch (error) {
+        console.error("Error fetching notes: ", error);
+      }
+    };
+    fetchNotes();
+  }, []);
 
 
   useEffect(() => {
@@ -239,28 +286,44 @@ function App() {
 
 
 
-  const addBook = (book) => {
-    if (!books.some(existingBook => existingBook.id === book.id)) {
-      setSearchInput("");
-      setSuggestions([])
-      setBooks([...books, book]);
-      toast.success(`${book.title} has been added to your Favorites list.`);
-    } else {
-      toast.error(`${book.title} is already in your list`);
+  const addBook = async (book) => {
+    try {
+      if (!books.some(existingBook => existingBook.id === book.id)) {
+        const bookDoc = doc(collection(db, "books"), book.id);
+        await setDoc(bookDoc, book);
+        setSuggestions([])
+        setSearchInput("");
+        setBooks((prevBooks) => [...prevBooks, book]);
+        toast.success(`${book.title} has been added to your Favorites list.`);
+      } else {
+        toast.error(`${book.title} is already in your list`);
+      }
+    } catch (error) {
+      console.error("Error adding book: ", error);
+      toast.error("Error adding book. Please try again.");
+    }
+  };
+
+
+  const addBookToReadLater = async (book) => {
+    try {
+      if (!readLater.some(existingBook => existingBook.id === book.id)) {
+        const bookDoc = doc(collection(db, "readLater"), book.id);
+        await setDoc(bookDoc, book);
+        setReadLater((prevBooks) => [...prevBooks, book]);
+        setSuggestionVisible(false)
+        toast.success(`${book.title} has been added to your Read later list.`);
+      } else {
+        toast.error(`${book.title} is already in your list`);
+      }
+
+    } catch (error) {
+      console.error("Error adding book: ", error);
+      toast.error("Error adding book. Please try again.");
     }
   }
 
-  const addBookToReadLater = (book) => {
-    if (!readLater.some(existingBook => existingBook.id === book.id)) {
-      setReadLater([...readLater, book]);
-      toast.success(`${book.title} has been added to your Read Later list.`);
-      setSuggestionVisible(false)
-    } else {
-      toast.error(`${book.title} is already in your list`);
-    }
-  }
-
-  const handleSubmit = (event) => {
+  const handleSubmit = async (event) => {
     event.preventDefault();
 
     const title = event.target.title.value;
@@ -277,13 +340,22 @@ function App() {
       link: link || "#"
     }
 
-    if (!usrEnteredBooks.some(existingBook => existingBook.id === book.id)) {
-      setUsrEnteredBooks([...usrEnteredBooks, book]);
-      setShowForm(false);
-      toast.success(`${book.title} has been added to your Favorites list.`);
-    } else {
-      toast.error(`${book.title} is already in your list`);
+    try {
+      if (!usrEnteredBooks.some(existingBook => existingBook.id === book.id)) {
+        const bookDoc = doc(collection(db, "usrEnteredBooks"), book.id)
+        await setDoc(bookDoc, book)
+        setUsrEnteredBooks([...usrEnteredBooks, book]);
+        setShowForm(false);
+        toast.success(`${book.title} has been added to your Favorites list.`);
+      } else {
+        toast.error(`${book.title} is already in your list`);
+      }
+
+    } catch (error) {
+      console.error("Error adding book: ", error);
+      toast.error("Error adding book. Please try again.");
     }
+
   }
 
   const pickABook = (typeOfBook, secondTypeOfBook = []) => {
@@ -347,11 +419,40 @@ function App() {
     setSuggestionVisible(false)
   }
 
-  const deleteBook = (id) => {
-    setBooks((prevBooks) => prevBooks.filter((book) => book.id !== id));
-    setUsrEnteredBooks((prevUsrBooks) => prevUsrBooks.filter((book) => book.id !== id))
-    setReadLater((prevBooks) => prevBooks.filter((book) => book.id !== id));
+  const deleteBook = async (id) => {
+    try {
+      const bookDoc = doc(db, "books", id);
+      await deleteDoc(bookDoc);
+      setBooks((prevBooks) => prevBooks.filter((book) => book.id !== id));
+
+      const usrBookDoc = doc(db, "usrEnteredBooks", id);
+      await deleteDoc(usrBookDoc);
+      setUsrEnteredBooks((prevBooks) => prevBooks.filter((book) => book.id !== id));
+
+      const readLaterDoc = doc(db, "readLater", id);
+      await deleteDoc(readLaterDoc);
+      setReadLater((prevBooks) => prevBooks.filter((book) => book.id !== id));
+      toast.success("Book deleted successfully!");
+    } catch (error) {
+      console.error("Error deleting book: ", error);
+      toast.error("Error deleting book. Please try again.");
+    }
+  };
+
+  const handleSaveNote = async () => {
+    try {
+      const bookDoc = doc(collection(db, "notes"), editingBookId)
+      await setDoc(bookDoc, { note: currentNote })
+      setNotes({ ...notes, [editingBookId]: currentNote })
+      toast.success("Note saved!")
+      setEditingBookId(null)
+      setCurrentNote("")
+    } catch (error) {
+      console.error("Error adding note: ", error);
+      toast.error("Error adding note. Please try again.");
+    }
   }
+
 
 
   const handleAddBook = (book) => {
@@ -371,12 +472,6 @@ function App() {
     setCurrentNote(notes[bookId] || "")
   }
 
-  const handleSaveNote = () => {
-    setNotes({ ...notes, [editingBookId]: currentNote })
-    toast.success("Note saved!")
-    setEditingBookId(null)
-    setCurrentNote("")
-  }
 
   const handleCancelEdit = () => {
     setEditingBookId(null)
