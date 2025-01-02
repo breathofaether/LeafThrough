@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
+import { v4 as uuidv4 } from "uuid";
+import { getUserId, setUserId } from "./utils/userId";
 import 'react-toastify/dist/ReactToastify.css';
 import noThumbnail from "./images/no_cover.jpg";
 import { quotes } from './quotes/quotes';
@@ -67,6 +69,7 @@ function App() {
     return storedTheme || 'light';
   });
 
+  const [userId, setUserIdState] = useState(null);
   const [editingBookId, setEditingBookId] = useState(null);
   const [currentNote, setCurrentNote] = useState("")
   const [nextReads, setNextReads] = useState(null);
@@ -86,9 +89,20 @@ function App() {
   const API_KEY = import.meta.env.VITE_API_KEY;
 
   useEffect(() => {
+    const savedUserId = getUserId();
+    if (savedUserId) {
+      setUserIdState(savedUserId);
+    } else {
+      const guestId = uuidv4();
+      setUserId(guestId);
+      setUserIdState(guestId);
+    }
+  }, []);
+
+  useEffect(() => {
     const fetchBooks = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "books"));
+        const querySnapshot = await getDocs(collection(db, "users", userId, "books"));
         const booksFromFirestore = querySnapshot.docs.map((doc) => ({
           ...doc.data(),
           id: doc.id,
@@ -98,14 +112,14 @@ function App() {
         console.error("Error fetching books: ", error);
       }
     };
-    fetchBooks();
-  }, []);
+    if (userId) fetchBooks();
+  }, [userId]);
 
 
   useEffect(() => {
     const fetchReadLaterBooks = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "readLater"));
+        const querySnapshot = await getDocs(collection(db, "users", userId, "readLater"));
         const booksFromFirestore = querySnapshot.docs.map((doc) => ({
           ...doc.data(),
           id: doc.id,
@@ -115,14 +129,14 @@ function App() {
         console.error("Error fetching books: ", error);
       }
     };
-    fetchReadLaterBooks();
-  }, []);
+    if(userId) fetchReadLaterBooks();
+  }, [userId]);
 
 
   useEffect(() => {
     const fetchUsrEnteredBooks = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "usrEnteredBooks"));
+        const querySnapshot = await getDocs(collection(db, "users", userId, "usrEnteredBooks"));
         const booksFromFirestore = querySnapshot.docs.map((doc) => ({
           ...doc.data(),
           id: doc.id,
@@ -132,24 +146,24 @@ function App() {
         console.error("Error fetching books: ", error);
       }
     };
-    fetchUsrEnteredBooks();
-  }, []);
+    if (userId) fetchUsrEnteredBooks();
+  }, [userId]);
 
 
   useEffect(() => {
-    const fetchNotes= async () => {
+    const fetchNotes = async () => {
       try {
-        const querySnapshot = await getDocs(collection(db, "notes"));
+        const querySnapshot = await getDocs(collection(db, "users", userId, "notes"));
         const notesFromFirestore = {};
         querySnapshot.forEach((doc) => {
-          notesFromFirestore[doc.id] = doc.data().note; 
+          notesFromFirestore[doc.id] = doc.data().note;
         });
         setNotes(notesFromFirestore);
       } catch (error) {
         console.error("Error fetching notes: ", error);
       }
     };
-    fetchNotes();
+    if(userId) fetchNotes();
   }, []);
 
 
@@ -281,7 +295,7 @@ function App() {
   const addBook = async (book) => {
     try {
       if (!books.some(existingBook => existingBook.id === book.id)) {
-        const bookDoc = doc(collection(db, "books"), book.id);
+        const bookDoc = doc(collection(db, "users", userId, "books"), book.id);
         await setDoc(bookDoc, book);
         setSuggestions([])
         setSearchInput("");
@@ -300,7 +314,7 @@ function App() {
   const addBookToReadLater = async (book) => {
     try {
       if (!readLater.some(existingBook => existingBook.id === book.id)) {
-        const bookDoc = doc(collection(db, "readLater"), book.id);
+        const bookDoc = doc(collection(db, "users", userId, "readLater"), book.id);
         await setDoc(bookDoc, book);
         setReadLater((prevBooks) => [...prevBooks, book]);
         setSuggestionVisible(false)
@@ -413,18 +427,25 @@ function App() {
 
   const deleteBook = async (id) => {
     try {
-      const bookDoc = doc(db, "books", id);
+      const bookDoc = doc(db, "users", userId, "books", id);
       await deleteDoc(bookDoc);
       setBooks((prevBooks) => prevBooks.filter((book) => book.id !== id));
 
-      const usrBookDoc = doc(db, "usrEnteredBooks", id);
+      const usrBookDoc = doc(db, "users", userId, "usrEnteredBooks", id);
       await deleteDoc(usrBookDoc);
       setUsrEnteredBooks((prevBooks) => prevBooks.filter((book) => book.id !== id));
 
-      const readLaterDoc = doc(db, "readLater", id);
+      const readLaterDoc = doc(db, "users", userId, "readLater", id);
       await deleteDoc(readLaterDoc);
       setReadLater((prevBooks) => prevBooks.filter((book) => book.id !== id));
       toast.success("Book deleted successfully!");
+
+      const noteDoc = doc(db, "users", userId, "notes", id);
+        await deleteDoc(noteDoc);
+        setNotes((prevNotes) => {
+            const { [id]: _, ...remainingNotes } = prevNotes; 
+            return remainingNotes;
+        });
     } catch (error) {
       console.error("Error deleting book: ", error);
       toast.error("Error deleting book. Please try again.");
@@ -433,7 +454,7 @@ function App() {
 
   const handleSaveNote = async () => {
     try {
-      const bookDoc = doc(collection(db, "notes"), editingBookId)
+      const bookDoc = doc(collection(db, "users", userId, "notes"), editingBookId)
       await setDoc(bookDoc, { note: currentNote })
       setNotes({ ...notes, [editingBookId]: currentNote })
       toast.success("Note saved!")
