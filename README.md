@@ -76,4 +76,14 @@ Users may experience slight latency during some operations (e.g., adding or dele
 Contributions are welcome! Please fork the repository and create a pull request.
 
 ---
+### Known Issues
+#### Compatibility with Safari
 
+The application may not work as expected on Safari browsers due to potential differences in how Safari handles certain web technologies like CORS policies or service workers.
+
+For the best experience, use:
+
+    Google Chrome
+    Mozilla Firefox
+
+to ensure full functionality.
