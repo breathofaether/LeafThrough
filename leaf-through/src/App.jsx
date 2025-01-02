@@ -2,8 +2,13 @@ import React, { useState, useEffect, useRef } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 import noThumbnail from "./images/no_cover.jpg";
+import { quotes } from './quotes';
 
+<<<<<<< HEAD
 const PrintBooks = ({ books = ([]), usrBooks = ([]), readLater = ([]), deleteBook }) => {
+=======
+const PrintBooks = ({ books = ([]), usrBooks = ([]), readLater = ([]), deleteBook, notes, handleAddOrEditNote }) => {
+>>>>>>> feature/test-new-features
   const [removingBookId, setRemovingBookId] = useState(null);
 
 
@@ -33,6 +38,7 @@ const PrintBooks = ({ books = ([]), usrBooks = ([]), readLater = ([]), deleteBoo
       {book.authors && (
         <em> by {book.authors.join(', ')} </em>
       )}
+      <button className="note-button" onClick={() => handleAddOrEditNote(book.id)}>{notes[book.id] ? "Edit Note" : "Add Note"}</button>
       <button className='delete-button' onClick={() => handleDelete(book.id)}>
         ❌
       </button>
@@ -66,6 +72,18 @@ function App() {
     return storedReadLaterBooks ? JSON.parse(storedReadLaterBooks) : [];
   });
 
+  const [notes, setNotes] = useState(() => {
+    const storedNotes = localStorage.getItem('notes');
+    return storedNotes ? JSON.parse(storedNotes) : {};
+  });
+
+  const [theme, setTheme] = useState(() => {
+    const storedTheme = localStorage.getItem('theme');
+    return storedTheme || 'light';
+  });
+
+  const [editingBookId, setEditingBookId] = useState(null);
+  const [currentNote, setCurrentNote] = useState("")
   const [nextReads, setNextReads] = useState(null);
   const [searchInput, setSearchInput] = useState("");
   const [suggestions, setSuggestions] = useState([]);
@@ -77,10 +95,14 @@ function App() {
   const [suggestionVisible, setSuggestionVisible] = useState(false)
   const [addBookId, setAddBookId] = useState(null)
   const scrollContainerRef = useRef(null);
+<<<<<<< HEAD
   const [theme, setTheme] = useState(() => {
     const storedTheme = localStorage.getItem('theme');
     return storedTheme || 'light';
   });
+=======
+  const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
+>>>>>>> feature/test-new-features
 
 
 
@@ -98,10 +120,25 @@ function App() {
     localStorage.setItem('readLaterBooks', JSON.stringify(readLater));
   }, [readLater])
 
+  useEffect(() => {
+    localStorage.setItem('notes', JSON.stringify(notes));
+  }, [notes])
+
 
   useEffect(() => {
     localStorage.setItem('theme', theme);
   }, [theme])
+
+  useEffect(() => {
+    document.body.className = theme;
+  }, [theme]);
+
+  useEffect(() => {
+    const quoteInterval = setInterval(() => {
+      setCurrentQuoteIndex((prevIndex) => (prevIndex + 1) % quotes.length)
+    }, 600000)
+    return () => clearInterval(quoteInterval);
+  }, [])
 
   function debounce(func, wait) {
     let timeout;
@@ -210,6 +247,8 @@ function App() {
   useEffect(() => {
     discoverBooks();
   }, [])
+
+
 
   const addBook = (book) => {
     if (!books.some(existingBook => existingBook.id === book.id)) {
@@ -548,14 +587,27 @@ function App() {
     setTheme((prevTheme) => (prevTheme === "light" ? "dark" : "light"))
   }
 
-  useEffect(() => {
-    document.body.className = theme;
-  }, [theme]);
+  const handleAddOrEditNote = (bookId) => {
+    setEditingBookId(bookId)
+    setCurrentNote(notes[bookId] || "")
+  }
 
+  const handleSaveNote = () => {
+    setNotes({ ...notes, [editingBookId]: currentNote })
+    toast.success("Note saved!")
+    setEditingBookId(null)
+    setCurrentNote("")
+  }
+
+  const handleCancelEdit = () => {
+    setEditingBookId(null)
+    setCurrentNote("")
+  }
 
   return (
     <div>
       <h2 className='title' onClick={() => pickABook(books, usrEnteredBooks)}>LeafThrough</h2>
+      <h3 className="quote">{quotes[currentQuoteIndex]}</h3>
       <strong className="instruction-text">
         Add your favorite books to the collection using the search bar or manual entry in the 'Add to Favorites' section.
         When you're ready, click the BookBuddy logo for a surprise pick!
@@ -641,13 +693,25 @@ function App() {
       <div className='books-list'>
         <h2>Rediscover your favorite books</h2>
         {(books.length === 0 && usrEnteredBooks.length === 0) && <p className='instruction-text'>No books added yet. Start by adding a book</p>}
-        <PrintBooks books={books} usrBooks={usrEnteredBooks} deleteBook={deleteBook} />
+        <PrintBooks books={books} usrBooks={usrEnteredBooks} deleteBook={deleteBook} notes={notes} handleAddOrEditNote={handleAddOrEditNote} />
+        {editingBookId && (
+          <div className='note-drawer'>
+            <h3>{books.find(book => book.id === editingBookId)?.title}</h3>
+            <textarea
+              value={currentNote}
+              onChange={(e) => setCurrentNote(e.target.value)}
+              placeholder='Enter your note here'
+            />
+            <button className="note-button" onClick={handleSaveNote}>Save</button>
+            <button className="note-button" onClick={handleCancelEdit}>Cancel</button>
+          </div>
+        )}
       </div>
 
       <div className='books-list'>
         <h2>Read Later</h2>
         {(readLater.length === 0) && <p className='instruction-text'>No books added yet. Start by adding a book</p>}
-        <PrintBooks readLater={readLater} deleteBook={deleteBook} />
+        <PrintBooks readLater={readLater} deleteBook={deleteBook} notes={notes} handleAddOrEditNote={handleAddOrEditNote} />
       </div>
 
       <button className='switch-theme' onClick={handleThemeSwitch}>{theme === "light" ? "🌙" : "☀️"}</button>

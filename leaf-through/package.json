@@ -23,8 +23,13 @@
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-modal": "^3.16.3",
+<<<<<<< HEAD
     "react-toastify": "^11.0.2",
     "talisman": "^1.1.4"
+=======
+    "react-pomodoro": "^0.1.1",
+    "react-toastify": "^11.0.2"
+>>>>>>> feature/test-new-features
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",
