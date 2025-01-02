@@ -32,7 +32,7 @@ This project uses Firebase for:
 - Real-time updates for UI consistency
 
 ### Branch Information
-The Firebase integration resides in the `feature/firebase-integration` branch. 
+The Firebase integration resides in the `feature/firebase-integration` branch. However, the live site at [Netlify](https://leafthrough.netlify.app) is updated to use Firebase.
 
 #### Performance Note
 Users may experience slight latency during some operations (e.g., adding or deleting books, saving notes). This is due to the Firebase database being hosted in a European region, which may introduce network delays depending on the user's geographic location.
