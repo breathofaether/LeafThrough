@@ -58,17 +58,9 @@ const PrintBooks = ({ books = ([]), usrBooks = ([]), readLater = ([]), deleteBoo
 
 function App() {
   const [books, setBooks] = useState([])
-  const [usrEnteredBooks, setUsrEnteredBooks] = useState(() => {
-    const storedUsrEnteredBooks = localStorage.getItem('usrEnteredBooks');
-    return storedUsrEnteredBooks ? JSON.parse(storedUsrEnteredBooks) : [];
-  });
-
+  const [usrEnteredBooks, setUsrEnteredBooks] = useState([]);
   const [readLater, setReadLater] = useState([]);
-
-  const [notes, setNotes] = useState(() => {
-    const storedNotes = localStorage.getItem('notes');
-    return storedNotes ? JSON.parse(storedNotes) : {};
-  });
+  const [notes, setNotes] = useState([])
 
   const [theme, setTheme] = useState(() => {
     const storedTheme = localStorage.getItem('theme');
