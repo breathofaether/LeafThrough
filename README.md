@@ -11,17 +11,31 @@ Search for books using the integrated Google Books API.
 
 ## Technologies Used
 
-- Frontend: React.js (with hooks and refs)
+- Frontend: React.js 
+
+- Backend: Firestore Database (NoSQL)
     
-- Styling: CSS with animations and hover effects
+- Styling: CSS 
     
 - API Integration: Google Books API
     
-- Hosting: [Netlify](https://www.netlify.com/)
+- Other: [Netlify](https://www.netlify.com/), Toastify (Notifications)
 
 ## Deployment
 
 - Live at: https://leafthrough.netlify.app.
+
+## Firebase Integration
+This project uses Firebase for:
+- Storing and managing book data (Favorites, Read Later, etc.)
+- Saving and retrieving user notes
+- Real-time updates for UI consistency
+
+### Branch Information
+The Firebase integration resides in the `feature/firebase-integration` branch. However, the live site at [Netlify](https://leafthrough.netlify.app) is updated to use Firebase.
+
+#### Performance Note
+Users may experience slight latency during some operations (e.g., adding or deleting books, saving notes). This is due to the Firebase database being hosted in a European region, which may introduce network delays depending on the user's geographic location.
 
 ## Installation and Setup
 
