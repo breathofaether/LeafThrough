@@ -11,11 +11,11 @@ Search for books using the integrated Google Books API.
 
 ## Technologies Used
 
-- Frontend: React.js (with hooks and refs)
+- Frontend: React.js 
 
 - Backend: Firestore Database (NoSQL)
     
-- Styling: CSS with animations and hover effects
+- Styling: CSS 
     
 - API Integration: Google Books API
     
