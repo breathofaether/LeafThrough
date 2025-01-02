@@ -13,23 +13,17 @@
     "@emotion/react": "^11.14.0",
     "@emotion/styled": "^11.14.0",
     "@mui/material": "^6.3.0",
-    "@tensorflow/tfjs": "^4.22.0",
     "@tensorflow/tfjs-node": "^4.22.0",
     "axios": "^1.7.9",
     "body-parser": "^1.20.3",
-    "compromise": "^14.14.3",
     "cors": "^2.8.5",
     "express": "^4.21.2",
+    "firebase": "^11.1.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
     "react-modal": "^3.16.3",
-<<<<<<< HEAD
-    "react-toastify": "^11.0.2",
-    "talisman": "^1.1.4"
-=======
     "react-pomodoro": "^0.1.1",
     "react-toastify": "^11.0.2"
->>>>>>> feature/test-new-features
   },
   "devDependencies": {
     "@eslint/js": "^9.15.0",
@@ -49,3 +43,4 @@
   "author": "",
   "license": "ISC"
 }
+
