@@ -4,13 +4,8 @@ import 'react-toastify/dist/ReactToastify.css';
 import noThumbnail from "./images/no_cover.jpg";
 import { quotes } from './quotes';
 
-<<<<<<< HEAD
-const PrintBooks = ({ books = ([]), usrBooks = ([]), readLater = ([]), deleteBook }) => {
-=======
 const PrintBooks = ({ books = ([]), usrBooks = ([]), readLater = ([]), deleteBook, notes, handleAddOrEditNote }) => {
->>>>>>> feature/test-new-features
   const [removingBookId, setRemovingBookId] = useState(null);
-
 
   const handleDelete = (id) => {
     setRemovingBookId(id);
@@ -95,16 +90,9 @@ function App() {
   const [suggestionVisible, setSuggestionVisible] = useState(false)
   const [addBookId, setAddBookId] = useState(null)
   const scrollContainerRef = useRef(null);
-<<<<<<< HEAD
-  const [theme, setTheme] = useState(() => {
-    const storedTheme = localStorage.getItem('theme');
-    return storedTheme || 'light';
-  });
-=======
+ 
+
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
->>>>>>> feature/test-new-features
-
-
 
   const API_KEY = import.meta.env.VITE_API_KEY;
 
@@ -312,9 +300,6 @@ function App() {
     }
   }
 
-
-
-
   const BookModal = ({ book, onClose }) => {
     return (
       <div className='modal'>
@@ -331,216 +316,6 @@ function App() {
       </div>
     )
   }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-
-
-
-
-
-
 
   const Suggest = ({ book, onClose, onAddToReadLater }) => {
     return (
