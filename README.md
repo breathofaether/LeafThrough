@@ -31,7 +31,7 @@ This project uses Firebase for:
 - Saving and retrieving user notes
 - Real-time updates for UI consistency
 
-### Firebase Integration
+### Branch Information
 The Firebase integration resides in the `feature/firebase-integration` branch. However, the live site at [Netlify](https://leafthrough.netlify.app) is updated to use Firebase.
 
 ## Installation and Setup
