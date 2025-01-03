@@ -205,7 +205,7 @@ body.dark .suggestion-list ul {
 .books-list li {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 5px;
   margin: 16px 0;
 }
 
