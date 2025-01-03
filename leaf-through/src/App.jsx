@@ -5,10 +5,11 @@ import { getUserId, setUserId } from "./utils/userId";
 import 'react-toastify/dist/ReactToastify.css';
 import noThumbnail from "./images/no_cover.jpg";
 import { quotes } from './quotes/quotes';
-import { collection, doc, setDoc, deleteDoc, getDocs } from "firebase/firestore";
+import { collection, doc, setDoc, deleteDoc, getDocs, updateDoc } from "firebase/firestore";
 import { db } from "./backend/firebase";
 import PrintBooks from './PrintBooks';
 import confetti from "canvas-confetti";
+
 
 function App() {
   const [books, setBooks] = useState([])
@@ -454,30 +455,54 @@ function App() {
     setShowAddToShelfModal(true)
   }
 
-  const updateBookstatus = async (bookId, newStatus) => {
+  const updateBookStatus = async (bookId, newStatus) => {
     try {
-      const bookDoc = doc(db, "users", userId, "books", bookId)
-      await setDoc(bookDoc, {status: newStatus}, {merge: true})
+        let bookFoundIn = null; 
 
-      setBooks((prevBooks) =>
-        prevBooks.map((book) =>
-          book.id === bookId ? { ...book, status: newStatus } : book
-        )
-      );
-      toast.success(`Status updated to ${newStatus}!`);
-      if (newStatus === "Finished Reading") {
-        confetti({
-          particleCount: 100,
-          spread: 90,
-          origin: { y: 0.6 },
-        });
-      }
+        const bookIndex = books.findIndex((book) => book.id === bookId);
+        if (bookIndex !== -1) {
+            const bookDoc = doc(db, "users", userId, "books", bookId);
+            await updateDoc(bookDoc, { status: newStatus }, { merge: true });
 
+            setBooks((prevBooks) =>
+                prevBooks.map((book) =>
+                    book.id === bookId ? { ...book, status: newStatus } : book
+                )
+            );
+            bookFoundIn = "Favorites";
+        }
+
+        const readLaterIndex = readLater.findIndex((book) => book.id === bookId);
+        if (readLaterIndex !== -1) {
+            const readLaterDoc = doc(db, "users", userId, "readLater", bookId);
+            await updateDoc(readLaterDoc, { status: newStatus }, { merge: true });
+
+            setReadLater((prevBooks) =>
+                prevBooks.map((book) =>
+                    book.id === bookId ? { ...book, status: newStatus } : book
+                )
+            );
+            bookFoundIn = "Bookshelf";
+        }
+
+        if (bookFoundIn) {
+            toast.success(`Status updated to ${newStatus} in ${bookFoundIn}!`);
+        } else {
+            toast.error("Book not found in any list.");
+        }
+
+        if (newStatus === "Finished Reading") {
+            confetti({
+                particleCount: 100,
+                spread: 90,
+                origin: { y: 0.6 },
+            });
+        }
     } catch (error) {
-      console.error("Error updating status: ", error)
-      toast.error("Error updating status. Please try again.")
+        console.error("Error updating status: ", error);
+        toast.error("Error updating status. Please try again.");
     }
-  }
+};
 
 
   const handleAddBook = (book) => {
@@ -592,7 +617,7 @@ function App() {
       <div className='books-list'>
         <h2>Rediscover your favorite books</h2>
         {(books.length === 0 && usrEnteredBooks.length === 0) && <p className='instruction-text'>No books added yet. Start by adding a book</p>}
-        <PrintBooks books={books} usrBooks={usrEnteredBooks} deleteBook={deleteBook} notes={notes} handleAddOrEditNote={handleAddOrEditNote} updateBookStatus={updateBookstatus}/>
+        <PrintBooks books={books} usrBooks={usrEnteredBooks} deleteBook={deleteBook} notes={notes} handleAddOrEditNote={handleAddOrEditNote} updateBookStatus={updateBookStatus}/>
         {editingBookId && (
           <div className='note-drawer'>
             <h3>{books.find(book => book.id === editingBookId)?.title}</h3>
@@ -610,7 +635,7 @@ function App() {
       <div className='books-list'>
         <h2>Bookshelf 🏛️</h2>
         {(readLater.length === 0) && <p className='instruction-text'>No books added yet. Start by adding a book</p>}
-        <PrintBooks readLater={readLater} deleteBook={deleteBook} notes={notes} handleAddOrEditNote={handleAddOrEditNote} />
+        <PrintBooks readLater={readLater} deleteBook={deleteBook} notes={notes} handleAddOrEditNote={handleAddOrEditNote} updateBookStatus={updateBookStatus}/>
       </div>
 
       <button className='switch-theme' onClick={handleThemeSwitch}>{theme === "light" ? "🌙" : "☀️"}</button>

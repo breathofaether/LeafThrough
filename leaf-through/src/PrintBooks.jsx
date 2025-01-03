@@ -31,7 +31,11 @@ const PrintBooks = ({ books = ([]), usrBooks = ([]), readLater = ([]), deleteBoo
             )}
             <select
                 value={book.status}
-                onChange={(e) => updateBookStatus(book.id, e.target.value)}
+                onChange={(e) => {
+                    if (updateBookStatus) {
+                        updateBookStatus(book.id, e.target.value);
+                    } 
+                }}
             >
                 <option value="Not Started">Not Started</option>
                 <option value="Currently Reading">Currently Reading</option>
