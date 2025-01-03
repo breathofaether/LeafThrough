@@ -83,7 +83,8 @@ function App() {
   const [addBookId, setAddBookId] = useState(null)
   const scrollContainerRef = useRef(null);
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
-
+  const [selectedBook, setSelectedBook] = useState(null);
+  const [showAddToShelfModal, setShowAddToShelfModal] = useState(false);
 
 
   const API_KEY = import.meta.env.VITE_API_KEY;
@@ -317,6 +318,8 @@ function App() {
         const bookDoc = doc(collection(db, "users", userId, "readLater"), book.id);
         await setDoc(bookDoc, book);
         setReadLater((prevBooks) => [...prevBooks, book]);
+        setSuggestions([])
+        setSearchInput("");
         setSuggestionVisible(false)
         toast.success(`${book.title} has been added to your Read later list.`);
       } else {
@@ -399,6 +402,31 @@ function App() {
     )
   }
 
+  const AddToShelf = ({ book, onClose }) => {
+    const handleAddToFavorites = () => {
+      addBook(book); 
+      setShowAddToShelfModal(false);
+    };
+  
+    const handleAddToReadLater = () => {
+      addBookToReadLater(book); 
+      setShowAddToShelfModal(false);
+    };
+  
+    return (
+      <div className="modal">
+        <div className="modal-content">
+          <h3>Add "{book.title}" to:</h3>
+          <button onClick={handleAddToFavorites}>❤️ Add to Favorites</button>
+          <button onClick={handleAddToReadLater}>🔜 Add to Read Later</button>
+          <button onClick={onClose}>Cancel</button>
+        </div>
+      </div>
+    );
+  };
+  
+  
+
   const Suggest = ({ book, onClose, onAddToReadLater }) => {
     return (
       <div className='suggest'>
@@ -466,6 +494,10 @@ function App() {
     }
   }
 
+  const handleShelf = (book) => {
+    setSelectedBook(book);
+    setShowAddToShelfModal(true)
+  }
 
 
   const handleAddBook = (book) => {
@@ -473,7 +505,7 @@ function App() {
     setTimeout(() => {
       addBook(book);
       setAddBookId(null);
-    }, 300);
+    }, 150);
   }
 
   const handleThemeSwitch = () => {
@@ -534,7 +566,7 @@ function App() {
         <div className={`suggestion-list ${suggestions.length > 0 ? "visible" : ""}`}>
           <ul>
             {suggestions.map((suggestion) => (
-              <li key={suggestion.id} className={`add-item ${addBookId === suggestion.id ? 'adding' : ''}`} onClick={() => handleAddBook(suggestion)}>
+              <li key={suggestion.id} className={`add-item ${addBookId === suggestion.id ? 'adding' : ''}`} onClick={() => handleShelf(suggestion)}>
                 {suggestion.title}
                 {suggestion.authors && <em> by ({suggestion.authors.join(', ')})</em>}
               </li>
@@ -606,6 +638,13 @@ function App() {
       {modalVisible && <BookModal book={pick} onClose={() => setModalVisible(false)} />}
 
       <ToastContainer />
+      
+      {showAddToShelfModal && selectedBook && (
+      <AddToShelf
+        book={selectedBook} 
+        onClose={() => setShowAddToShelfModal(false)} 
+      />
+    )}
     </div>
   );
 }
