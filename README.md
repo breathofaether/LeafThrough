@@ -81,7 +81,7 @@ Contributions are welcome! Please fork the repository and create a pull request.
 
 The application may not work as expected on Safari browsers due to potential differences in how Safari handles certain web technologies like CORS policies or service workers.
 
-For the best experience, use:
+Use:
 
     Google Chrome
     Mozilla Firefox
