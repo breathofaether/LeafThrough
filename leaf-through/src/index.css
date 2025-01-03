@@ -616,3 +616,20 @@ body.dark .note-button:active {
   opacity: 0.8;
 }
 
+.finished-icon {
+  display: inline-block;
+  font-size: 1.5rem;
+  color: green;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.8);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}

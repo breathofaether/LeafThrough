@@ -8,6 +8,7 @@ import { quotes } from './quotes/quotes';
 import { collection, doc, setDoc, deleteDoc, getDocs } from "firebase/firestore";
 import { db } from "./backend/firebase";
 import PrintBooks from './PrintBooks';
+import confetti from "canvas-confetti";
 
 function App() {
   const [books, setBooks] = useState([])
@@ -169,6 +170,7 @@ function App() {
             authors: item.volumeInfo.authors || null,
             genre: item.volumeInfo.mainCategory || "Unknown",
             link: item.volumeInfo.infoLink || "#",
+            status: "Not Started"
           }))
         );
       } else {
@@ -197,6 +199,7 @@ function App() {
         cover: item.volumeInfo.imageLinks ? item.volumeInfo.imageLinks.thumbnail : noThumbnail,
         genre: item.volumeInfo.mainCategory || "Unknown",
         link: item.volumeInfo.infoLink || "#",
+        status: "Not Started"
       })));
     }
   }
@@ -272,7 +275,7 @@ function App() {
         setSuggestions([])
         setSearchInput("");
         setSuggestionVisible(false)
-        toast.success(`${book.title} has been added to your Read later list.`);
+        toast.success(`${book.title} has been added to your Bookshelf!`);
       } else {
         toast.error(`${book.title} is already in your list`);
       }
@@ -297,7 +300,8 @@ function App() {
       authors: authors || ["Unknown Author"],
       cover: noThumbnail,
       genre: genre || "Unknown",
-      link: link || "#"
+      link: link || "#",
+      status: "Not started"
     }
 
     try {
@@ -369,7 +373,7 @@ function App() {
         <div className="modal-content">
           <h3>Add "{book.title}" to:</h3>
           <button onClick={handleAddToFavorites}>❤️ Add to Favorites</button>
-          <button onClick={handleAddToReadLater}>🔜 Add to Read Later</button>
+          <button onClick={handleAddToReadLater}>🔜 Add to Bookshelf</button>
           <button onClick={onClose}>Cancel</button>
         </div>
       </div>
@@ -448,6 +452,31 @@ function App() {
   const handleShelf = (book) => {
     setSelectedBook(book);
     setShowAddToShelfModal(true)
+  }
+
+  const updateBookstatus = async (bookId, newStatus) => {
+    try {
+      const bookDoc = doc(db, "users", userId, "books", bookId)
+      await setDoc(bookDoc, {status: newStatus}, {merge: true})
+
+      setBooks((prevBooks) =>
+        prevBooks.map((book) =>
+          book.id === bookId ? { ...book, status: newStatus } : book
+        )
+      );
+      toast.success(`Status updated to ${newStatus}!`);
+      if (newStatus === "Finished Reading") {
+        confetti({
+          particleCount: 100,
+          spread: 90,
+          origin: { y: 0.6 },
+        });
+      }
+
+    } catch (error) {
+      console.error("Error updating status: ", error)
+      toast.error("Error updating status. Please try again.")
+    }
   }
 
 
@@ -563,7 +592,7 @@ function App() {
       <div className='books-list'>
         <h2>Rediscover your favorite books</h2>
         {(books.length === 0 && usrEnteredBooks.length === 0) && <p className='instruction-text'>No books added yet. Start by adding a book</p>}
-        <PrintBooks books={books} usrBooks={usrEnteredBooks} deleteBook={deleteBook} notes={notes} handleAddOrEditNote={handleAddOrEditNote} />
+        <PrintBooks books={books} usrBooks={usrEnteredBooks} deleteBook={deleteBook} notes={notes} handleAddOrEditNote={handleAddOrEditNote} updateBookStatus={updateBookstatus}/>
         {editingBookId && (
           <div className='note-drawer'>
             <h3>{books.find(book => book.id === editingBookId)?.title}</h3>
@@ -579,7 +608,7 @@ function App() {
       </div>
 
       <div className='books-list'>
-        <h2>Read Later</h2>
+        <h2>Bookshelf 🏛️</h2>
         {(readLater.length === 0) && <p className='instruction-text'>No books added yet. Start by adding a book</p>}
         <PrintBooks readLater={readLater} deleteBook={deleteBook} notes={notes} handleAddOrEditNote={handleAddOrEditNote} />
       </div>

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 
 const PrintBooks = ({ books = ([]), usrBooks = ([]), readLater = ([]), deleteBook, notes, handleAddOrEditNote, updateBookStatus }) => {
     const [removingBookId, setRemovingBookId] = useState(null);
-    
+
     const handleDelete = (id) => {
         setRemovingBookId(id);
         setTimeout(() => {
@@ -29,6 +29,15 @@ const PrintBooks = ({ books = ([]), usrBooks = ([]), readLater = ([]), deleteBoo
             {book.authors && (
                 <em> by {book.authors.join(', ')} </em>
             )}
+            <select
+                value={book.status}
+                onChange={(e) => updateBookStatus(book.id, e.target.value)}
+            >
+                <option value="Not Started">Not Started</option>
+                <option value="Currently Reading">Currently Reading</option>
+                <option value="Finished Reading">Finished Reading</option>
+            </select>
+            {book.status === "Finished Reading" && <span className="finished-icon">✔️</span>}
             <button className="note-button" onClick={() => handleAddOrEditNote(book.id)}>{notes[book.id] ? "Edit Note" : "Add Note"}</button>
             <button className='delete-button' onClick={() => handleDelete(book.id)}>
                 ❌
