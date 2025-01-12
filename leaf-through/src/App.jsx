@@ -119,7 +119,7 @@ function App() {
       }
     };
     if (userId) fetchNotes();
-  }, []);
+  }, [userId]);
 
 
   useEffect(() => {
@@ -439,17 +439,23 @@ function App() {
 
   const handleSaveNote = async () => {
     try {
-      const bookDoc = doc(collection(db, "users", userId, "notes"), editingBookId)
-      await setDoc(bookDoc, { note: currentNote })
-      setNotes({ ...notes, [editingBookId]: currentNote })
-      toast.success("Note saved!")
-      setEditingBookId(null)
-      setCurrentNote("")
+      const bookDoc = doc(db, "users", userId, "notes", editingBookId);
+      await setDoc(bookDoc, { note: currentNote }, { merge: true });
+
+      setNotes((prevNotes) => ({
+        ...prevNotes,
+        [editingBookId]: currentNote,
+      }));
+
+      toast.success("Note saved!");
+      setEditingBookId(null);
+      setCurrentNote("");
     } catch (error) {
       console.error("Error adding note: ", error);
       toast.error("Error adding note. Please try again.");
     }
-  }
+  };
+
 
   const handleShelf = (book) => {
     setSelectedBook(book);
