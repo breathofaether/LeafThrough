@@ -38,7 +38,8 @@ function App() {
   const [currentQuoteIndex, setCurrentQuoteIndex] = useState(0);
   const [selectedBook, setSelectedBook] = useState(null);
   const [showAddToShelfModal, setShowAddToShelfModal] = useState(false);
-
+  const [favoriteFilterStatus, setFavoriteFilterStatus] = useState("All");
+  const [bookshelfFilterStatus, setBookshelfFilterStatus] = useState("All");
 
   const API_KEY = import.meta.env.VITE_API_KEY;
 
@@ -83,7 +84,7 @@ function App() {
         console.error("Error fetching books: ", error);
       }
     };
-    if(userId) fetchReadLaterBooks();
+    if (userId) fetchReadLaterBooks();
   }, [userId]);
 
 
@@ -117,7 +118,7 @@ function App() {
         console.error("Error fetching notes: ", error);
       }
     };
-    if(userId) fetchNotes();
+    if (userId) fetchNotes();
   }, []);
 
 
@@ -360,15 +361,15 @@ function App() {
 
   const AddToShelf = ({ book, onClose }) => {
     const handleAddToFavorites = () => {
-      addBook(book); 
+      addBook(book);
       setShowAddToShelfModal(false);
     };
-  
+
     const handleAddToReadLater = () => {
-      addBookToReadLater(book); 
+      addBookToReadLater(book);
       setShowAddToShelfModal(false);
     };
-  
+
     return (
       <div className="modal">
         <div className="modal-content">
@@ -380,8 +381,8 @@ function App() {
       </div>
     );
   };
-  
-  
+
+
 
   const Suggest = ({ book, onClose, onAddToReadLater }) => {
     return (
@@ -425,11 +426,11 @@ function App() {
       toast.success("Book deleted successfully!");
 
       const noteDoc = doc(db, "users", userId, "notes", id);
-        await deleteDoc(noteDoc);
-        setNotes((prevNotes) => {
-            const { [id]: _, ...remainingNotes } = prevNotes; 
-            return remainingNotes;
-        });
+      await deleteDoc(noteDoc);
+      setNotes((prevNotes) => {
+        const { [id]: _, ...remainingNotes } = prevNotes;
+        return remainingNotes;
+      });
     } catch (error) {
       console.error("Error deleting book: ", error);
       toast.error("Error deleting book. Please try again.");
@@ -457,52 +458,52 @@ function App() {
 
   const updateBookStatus = async (bookId, newStatus) => {
     try {
-        let bookFoundIn = null; 
+      let bookFoundIn = null;
 
-        const bookIndex = books.findIndex((book) => book.id === bookId);
-        if (bookIndex !== -1) {
-            const bookDoc = doc(db, "users", userId, "books", bookId);
-            await updateDoc(bookDoc, { status: newStatus }, { merge: true });
+      const bookIndex = books.findIndex((book) => book.id === bookId);
+      if (bookIndex !== -1) {
+        const bookDoc = doc(db, "users", userId, "books", bookId);
+        await updateDoc(bookDoc, { status: newStatus }, { merge: true });
 
-            setBooks((prevBooks) =>
-                prevBooks.map((book) =>
-                    book.id === bookId ? { ...book, status: newStatus } : book
-                )
-            );
-            bookFoundIn = "Favorites";
-        }
+        setBooks((prevBooks) =>
+          prevBooks.map((book) =>
+            book.id === bookId ? { ...book, status: newStatus } : book
+          )
+        );
+        bookFoundIn = "Favorites";
+      }
 
-        const readLaterIndex = readLater.findIndex((book) => book.id === bookId);
-        if (readLaterIndex !== -1) {
-            const readLaterDoc = doc(db, "users", userId, "readLater", bookId);
-            await updateDoc(readLaterDoc, { status: newStatus }, { merge: true });
+      const readLaterIndex = readLater.findIndex((book) => book.id === bookId);
+      if (readLaterIndex !== -1) {
+        const readLaterDoc = doc(db, "users", userId, "readLater", bookId);
+        await updateDoc(readLaterDoc, { status: newStatus }, { merge: true });
 
-            setReadLater((prevBooks) =>
-                prevBooks.map((book) =>
-                    book.id === bookId ? { ...book, status: newStatus } : book
-                )
-            );
-            bookFoundIn = "Bookshelf";
-        }
+        setReadLater((prevBooks) =>
+          prevBooks.map((book) =>
+            book.id === bookId ? { ...book, status: newStatus } : book
+          )
+        );
+        bookFoundIn = "Bookshelf";
+      }
 
-        if (bookFoundIn) {
-            toast.success(`Status updated to ${newStatus} in ${bookFoundIn}!`);
-        } else {
-            toast.error("Book not found in any list.");
-        }
+      if (bookFoundIn) {
+        toast.success(`Status updated to ${newStatus} in ${bookFoundIn}!`);
+      } else {
+        toast.error("Book not found in any list.");
+      }
 
-        if (newStatus === "Finished Reading") {
-            confetti({
-                particleCount: 100,
-                spread: 90,
-                origin: { y: 0.6 },
-            });
-        }
+      if (newStatus === "Finished Reading") {
+        confetti({
+          particleCount: 100,
+          spread: 90,
+          origin: { y: 0.6 },
+        });
+      }
     } catch (error) {
-        console.error("Error updating status: ", error);
-        toast.error("Error updating status. Please try again.");
+      console.error("Error updating status: ", error);
+      toast.error("Error updating status. Please try again.");
     }
-};
+  };
 
 
   const handleAddBook = (book) => {
@@ -527,6 +528,30 @@ function App() {
     setEditingBookId(null)
     setCurrentNote("")
   }
+
+  const filterBooks = (bookList, status) => {
+    return bookList.filter(
+      (book) => status === "All" || book.status === status
+    );
+  };
+
+  const FilterSection = ({ filterStatus, setFilterStatus }) => {
+    return (
+      <div className='filter-section'>
+        <label htmlFor='statusFilter'>Filter by Status: </label>
+        <select
+          id='statusFilter'
+          value={filterStatus}
+          onChange={(e) => setFilterStatus(e.target.value)}
+        >
+          <option value="All">All</option>
+          <option value="Not Started">Not Started</option>
+          <option value="Currently Reading">Currently Reading</option>
+          <option value="Finished Reading">Finished Reading</option>
+        </select>
+      </div>
+    );
+  };
 
   return (
     <div>
@@ -615,9 +640,10 @@ function App() {
 
 
       <div className='books-list'>
-        <h2>Rediscover your favorite books</h2>
+        <h2>✨ Rediscover your favorite books</h2>
         {(books.length === 0 && usrEnteredBooks.length === 0) && <p className='instruction-text'>No books added yet. Start by adding a book</p>}
-        <PrintBooks books={books} usrBooks={usrEnteredBooks} deleteBook={deleteBook} notes={notes} handleAddOrEditNote={handleAddOrEditNote} updateBookStatus={updateBookStatus}/>
+        <FilterSection filterStatus={favoriteFilterStatus} setFilterStatus={setFavoriteFilterStatus} />
+        <PrintBooks books={filterBooks(books, favoriteFilterStatus)} usrBooks={filterBooks(usrEnteredBooks, favoriteFilterStatus)} deleteBook={deleteBook} notes={notes} handleAddOrEditNote={handleAddOrEditNote} updateBookStatus={updateBookStatus} />
         {editingBookId && (
           <div className='note-drawer'>
             <h3>{books.find(book => book.id === editingBookId)?.title}</h3>
@@ -635,7 +661,8 @@ function App() {
       <div className='books-list'>
         <h2>Bookshelf 🏛️</h2>
         {(readLater.length === 0) && <p className='instruction-text'>No books added yet. Start by adding a book</p>}
-        <PrintBooks readLater={readLater} deleteBook={deleteBook} notes={notes} handleAddOrEditNote={handleAddOrEditNote} updateBookStatus={updateBookStatus}/>
+        <FilterSection filterStatus={bookshelfFilterStatus} setFilterStatus={setBookshelfFilterStatus} />
+        <PrintBooks readLater={filterBooks(readLater, bookshelfFilterStatus)} deleteBook={deleteBook} notes={notes} handleAddOrEditNote={handleAddOrEditNote} updateBookStatus={updateBookStatus} />
       </div>
 
       <button className='switch-theme' onClick={handleThemeSwitch}>{theme === "light" ? "🌙" : "☀️"}</button>
@@ -643,13 +670,13 @@ function App() {
       {modalVisible && <BookModal book={pick} onClose={() => setModalVisible(false)} />}
 
       <ToastContainer />
-      
+
       {showAddToShelfModal && selectedBook && (
-      <AddToShelf
-        book={selectedBook} 
-        onClose={() => setShowAddToShelfModal(false)} 
-      />
-    )}
+        <AddToShelf
+          book={selectedBook}
+          onClose={() => setShowAddToShelfModal(false)}
+        />
+      )}
     </div>
   );
 }

@@ -633,3 +633,19 @@ body.dark .note-button:active {
     transform: scale(1);
   }
 }
+
+.filter-section {
+  margin: 10px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.filter-section label {
+  font-weight: bold;
+}
+
+.filter-section select {
+  padding: 5px;
+  border-radius: 4px;
+}
