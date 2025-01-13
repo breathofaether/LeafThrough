@@ -579,6 +579,10 @@ function App() {
   }
 
   const updateBookStatus = async (bookId, newStatus) => {
+    if (!userId) {
+      toast.info("Login to update status.")
+      return
+    }
     try {
       let bookFoundIn = null;
 
