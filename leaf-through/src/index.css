@@ -158,7 +158,7 @@ input[type=url] {
     0 1px 5px 0 rgba(0, 0, 0, 0.12);
 }
 
-body.dark .suggestion-list ul { 
+body.dark .suggestion-list ul {
   background-color: #282828;
 }
 
@@ -313,7 +313,8 @@ a:hover {
   transition: opacity 8.3s ease-out, transform 8.3s ease-out;
 }
 
-.book-item.removing, .book-item.remove-all{
+.book-item.removing,
+.book-item.remove-all {
   opacity: 0;
   transform: translateX(-20px);
 }
@@ -337,8 +338,8 @@ a:hover {
 }
 
 body.dark {
-  background-color: #181818; 
-  color: #f0f0f0; 
+  background-color: #181818;
+  color: #f0f0f0;
 }
 
 .switch-theme {
@@ -398,10 +399,10 @@ body {
   font-size: 1.5rem;
   width: 40px;
   height: 40px;
-  display: flex; 
-  align-items: center; 
-  justify-content: center; 
-  margin: 10px auto; 
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 10px auto;
   transition: background-color 0.3s ease;
 }
 
@@ -477,6 +478,7 @@ body {
   from {
     transform: translateY(100%);
   }
+
   to {
     transform: translateY(0);
   }
@@ -535,6 +537,7 @@ body.dark .note-drawer button.note-button:active {
     opacity: 0;
     transform: translateY(10px);
   }
+
   to {
     opacity: 1;
     transform: translateY(0);
@@ -582,7 +585,7 @@ body.dark .note-button:active {
   position: absolute;
   top: 10px;
   left: 10px;
-} 
+}
 
 .modal {
   position: fixed;
@@ -628,6 +631,7 @@ body.dark .note-button:active {
     opacity: 0;
     transform: scale(0.8);
   }
+
   to {
     opacity: 1;
     transform: scale(1);
@@ -648,4 +652,105 @@ body.dark .note-button:active {
 .filter-section select {
   padding: 5px;
   border-radius: 4px;
+}
+
+.toggle-auth {
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-color); 
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  text-decoration: underline; 
+  transition: color 0.2s ease;
+}
+
+.toggle-auth:hover {
+  color: var(--primary-color);
+}
+
+.auth-form {
+  background-color: var(--surface-color); 
+  border-radius: 8px;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+  padding: 2rem;
+  text-align: center; 
+}
+
+.auth-form h3 {
+  font-size: 1.8rem;
+  margin-bottom: 1rem;
+}
+
+.auth-form input {
+  display: block;
+  width: 100%;
+  padding: 0.8rem;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  font-size: 1rem;
+  margin-bottom: 1rem;
+  outline: none;
+  transition: border-color 0.2s ease;
+}
+
+.auth-form input:focus {
+  border-color: var(--primary-color);
+}
+
+.password-container {
+  position: relative; 
+}
+
+.auth-form button {
+  background-color: var(--primary-color);
+  color: var(--text-light); 
+  border: none;
+  border-radius: 4px;
+  padding: 0.8rem 1.5rem;
+  font-size: 1rem;
+  cursor: pointer;
+  margin-right: 1rem; 
+  transition: background-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.auth-form button:hover {
+  background-color: var(--primary-dark-color);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.auth-form button:last-child {
+  background-color: var(--secondary-color); 
+}
+
+.toggle-password {
+  position: absolute; 
+  top: 50%;
+  right: 10px;
+  transform: translateY(-50%); 
+  background-color: transparent;
+  border: none;
+  cursor: pointer;
+  color: var(--text-color); 
+  font-size: 1rem;
+  transition: color 0.2s ease;
+}
+
+.toggle-password:hover {
+  color: var(--primary-color);
+}
+
+.logout {
+  background-color: #f44336; 
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s ease; 
+}
+
+.logout:hover {
+  background-color: #d32f2f;
 }

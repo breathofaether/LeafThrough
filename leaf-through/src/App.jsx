@@ -1,7 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { toast, ToastContainer } from 'react-toastify';
-import { v4 as uuidv4 } from "uuid";
-import { getUserId, setUserId } from "./utils/userId";
 import 'react-toastify/dist/ReactToastify.css';
 import noThumbnail from "./images/no_cover.jpg";
 import { quotes } from './quotes/quotes';
@@ -9,7 +7,14 @@ import { collection, doc, setDoc, deleteDoc, getDocs, updateDoc } from "firebase
 import { db } from "./backend/firebase";
 import PrintBooks from './PrintBooks';
 import confetti from "canvas-confetti";
-
+import {
+  createUserWithEmailAndPassword,
+  onAuthStateChanged,
+  signOut,
+  signInWithEmailAndPassword
+} from "firebase/auth";
+import { auth } from "./backend/firebase";
+import AuthForm from './backend/AuthForm';
 
 function App() {
   const [books, setBooks] = useState([])
@@ -44,17 +49,25 @@ function App() {
   const API_KEY = import.meta.env.VITE_API_KEY;
 
   useEffect(() => {
-    const savedUserId = getUserId();
-    if (savedUserId) {
-      setUserIdState(savedUserId);
-    } else {
-      const guestId = uuidv4();
-      setUserId(guestId);
-      setUserIdState(guestId);
-    }
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUserIdState(user.uid);
+        localStorage.setItem("userId", user.uid);
+      } else {
+        setUserIdState(null);
+        localStorage.removeItem("userId");
+        toast.info("You're not logged in. Your data will be lost on refresh. Login to save books permanently");
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
 
+
+
   useEffect(() => {
+    if (!userId) return;
+
     const fetchBooks = async () => {
       try {
         const querySnapshot = await getDocs(collection(db, "users", userId, "books"));
@@ -72,6 +85,8 @@ function App() {
 
 
   useEffect(() => {
+    if (!userId) return;
+
     const fetchReadLaterBooks = async () => {
       try {
         const querySnapshot = await getDocs(collection(db, "users", userId, "readLater"));
@@ -89,6 +104,8 @@ function App() {
 
 
   useEffect(() => {
+    if (!userId) return;
+
     const fetchUsrEnteredBooks = async () => {
       try {
         const querySnapshot = await getDocs(collection(db, "users", userId, "usrEnteredBooks"));
@@ -106,6 +123,8 @@ function App() {
 
 
   useEffect(() => {
+    if (!userId) return;
+
     const fetchNotes = async () => {
       try {
         const querySnapshot = await getDocs(collection(db, "users", userId, "notes"));
@@ -136,6 +155,62 @@ function App() {
     }, 600000)
     return () => clearInterval(quoteInterval);
   }, [])
+
+  useEffect(() => {
+    const lastLogin = localStorage.getItem("guestCreatedAt");
+    if (!lastLogin) {
+      localStorage.setItem("guestCreatedAt", Date.now());
+    } else {
+      const timeElapsed = Date.now() - parseInt(lastLogin, 10);
+      if (timeElapsed > 24 * 60 * 60 * 1000) {
+        localStorage.removeItem("guestId");
+        localStorage.removeItem("guestCreatedAt");
+        setUserIdState(null);
+        toast.info("Your guest session has expired.");
+      }
+    }
+  }, []);
+
+
+  const signUpWithEmail = async (email, password) => {
+    try {
+      const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      setUserIdState(user.uid);
+      localStorage.setItem("userId", user.uid);
+      toast.success("Account created successfully!");
+    } catch (error) {
+      console.error("Error signing up:", error);
+      toast.error(error.message);
+    }
+  };
+
+  const signInWithEmail = async (email, password) => {
+    try {
+      const userCredential = await signInWithEmailAndPassword(auth, email, password);
+      const user = userCredential.user;
+      setUserIdState(user.uid);
+      localStorage.setItem("userId", user.uid);
+      toast.success("Successfully signed in!");
+    } catch (error) {
+      toast.error("Login failed. Please try again");
+    }
+  };
+
+  const handleLogout = async () => {
+    try {
+      await signOut(auth);
+      setUserIdState(null);
+      setBooks([])
+      setReadLater([])
+      setUsrEnteredBooks([])
+      setNotes([])
+      localStorage.removeItem("userId");
+      toast.info("You have logged out.");
+    } catch (error) {
+      toast.error("Failed to log out.");
+    }
+  };
 
   function debounce(func, wait) {
     let timeout;
@@ -250,6 +325,14 @@ function App() {
 
 
   const addBook = async (book) => {
+    if (!userId) {
+      setSuggestions([])
+      setSearchInput("");
+      setBooks((prevBooks) => [...prevBooks, book]);
+      toast.info("Please log in to save books permanently.");
+      return;
+    }
+
     try {
       if (!books.some(existingBook => existingBook.id === book.id)) {
         const bookDoc = doc(collection(db, "users", userId, "books"), book.id);
@@ -269,6 +352,15 @@ function App() {
 
 
   const addBookToReadLater = async (book) => {
+    if (!userId) {
+      setReadLater((prevBooks) => [...prevBooks, book]);
+      setSuggestions([])
+      setSearchInput("");
+      setSuggestionVisible(false)
+      toast.info("Please log in to save books permanently.");
+      return;
+    }
+
     try {
       if (!readLater.some(existingBook => existingBook.id === book.id)) {
         const bookDoc = doc(collection(db, "users", userId, "readLater"), book.id);
@@ -289,6 +381,10 @@ function App() {
   }
 
   const handleSubmit = async (event) => {
+    if (!userId) {
+      toast.info("Please log in to save books permanently.");
+    }
+
     event.preventDefault();
 
     const title = event.target.title.value;
@@ -411,6 +507,17 @@ function App() {
   }
 
   const deleteBook = async (id) => {
+    if (!userId) {
+      setBooks((prevBooks) => prevBooks.filter((book) => book.id !== id));
+      setUsrEnteredBooks((prevBooks) => prevBooks.filter((book) => book.id !== id));
+      setReadLater((prevBooks) => prevBooks.filter((book) => book.id !== id));
+      setNotes((prevNotes) => {
+        const { [id]: _, ...remainingNotes } = prevNotes;
+        return remainingNotes;
+      });
+      return;
+    }
+
     try {
       const bookDoc = doc(db, "users", userId, "books", id);
       await deleteDoc(bookDoc);
@@ -438,6 +545,15 @@ function App() {
   };
 
   const handleSaveNote = async () => {
+
+    if (!userId) {
+      setNotes((prevNotes) => ({
+        ...prevNotes,
+        [editingBookId]: currentNote,
+      }));
+      return;
+    }
+
     try {
       const bookDoc = doc(db, "users", userId, "notes", editingBookId);
       await setDoc(bookDoc, { note: currentNote }, { merge: true });
@@ -568,6 +684,16 @@ function App() {
         When you're ready, click the BookBuddy logo for a surprise pick!
         Explore interesting reads in the 'Discover' section to find books you might love.
       </strong>
+
+      <div className='authentication'>
+        {!userId ? (
+          <div className='login'>
+            <AuthForm onSignUp={signUpWithEmail} onSignIn={signInWithEmail} />
+          </div>
+        ) : (
+          <button className='logout' onClick={handleLogout}>Logout</button>
+        )}
+      </div>
 
       <div className='discover-books'>
         <h2>Discover</h2>
