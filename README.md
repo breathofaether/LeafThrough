@@ -13,7 +13,7 @@ Search for books using the integrated Google Books API.
 
 - Frontend: React.js 
 
-- Backend: Firestore Database (NoSQL)
+- Backend: Firestore Database (NoSQL), Firebase Authentication
     
 - Styling: CSS 
     
@@ -27,6 +27,7 @@ Search for books using the integrated Google Books API.
 
 ## Firebase Integration
 This project uses Firebase for:
+- User Authentication
 - Storing and managing book data (Favorites, Read Later, etc.)
 - Saving and retrieving user notes
 - Real-time updates for UI consistency
