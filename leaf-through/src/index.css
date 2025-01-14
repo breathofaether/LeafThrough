@@ -740,6 +740,13 @@ body.dark .note-button:active {
   color: var(--primary-color);
 }
 
+.button-container {
+  display: flex;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 0;
+}
+
 .logout {
   background-color: #f44336; 
   color: white;
@@ -748,9 +755,27 @@ body.dark .note-button:active {
   border-radius: 4px;
   cursor: pointer;
   font-size: 1rem;
-  transition: background-color 0.3s ease; 
+  transition: background-color 0.3s ease;
 }
 
 .logout:hover {
   background-color: #d32f2f;
 }
+
+.delete-account-btn {
+  background-color: #f44336; 
+  color: white;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.3s ease;
+  position: absolute;
+  right: 20px;
+}
+  
+.delete-account-btn:hover {
+  background-color: #d32f2f;
+}
+

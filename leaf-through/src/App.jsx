@@ -11,7 +11,9 @@ import {
   createUserWithEmailAndPassword,
   onAuthStateChanged,
   signOut,
-  signInWithEmailAndPassword
+  signInWithEmailAndPassword,
+  getAuth,
+  deleteUser
 } from "firebase/auth";
 import { auth } from "./backend/firebase";
 import AuthForm from './backend/AuthForm';
@@ -179,9 +181,10 @@ function App() {
       setUserIdState(user.uid);
       localStorage.setItem("userId", user.uid);
       toast.success("Account created successfully!");
+      toast.info("Please remember your password, as there is no way to recover it.");
     } catch (error) {
       console.error("Error signing up:", error);
-      toast.error(error.message);
+      toast.error("Error Signing Up. Please try again.");
     }
   };
 
@@ -679,6 +682,57 @@ function App() {
     );
   };
 
+
+  const deleteUserData = async (userId) => {
+    try {
+      const userCollections = ["books", "notes", "usrEnteredBooks", "readLater"]; // List of collections
+
+      for (const collectionName of userCollections) {
+        const collectionRef = collection(db, "users", userId, collectionName);
+        const querySnapshot = await getDocs(collectionRef);
+
+        const deletePromises = querySnapshot.docs.map((docSnapshot) =>
+          deleteDoc(doc(db, "users", userId, collectionName, docSnapshot.id))
+        );
+
+        await Promise.all(deletePromises);
+      }
+
+      await deleteDoc(doc(db, "users", userId));
+
+      toast.success("Your account and data have been deleted.");
+    } catch (error) {
+      console.error("Error deleting user data: ", error);
+      toast.error("Failed to delete user data. Try again later.");
+    }
+  };
+
+  const handleDeleteAccount = async () => {
+    const auth = getAuth();
+    const user = auth.currentUser;
+
+    if (!user) {
+      toast.error("No user logged in.");
+      return;
+    }
+
+    if (!window.confirm("Are you sure you want to delete your account? This action cannot be undone.")) {
+      return;
+    }
+
+    try {
+      await deleteUserData(user.uid);
+
+      await deleteUser(user);
+
+      toast.success("Account successfully deleted.");
+    } catch (error) {
+      console.error("Error deleting account: ", error);
+      toast.error("Failed to delete account. Try logging in again and retry.");
+    }
+  };
+
+
   return (
     <div>
       <h2 className='title' onClick={() => pickABook(books, usrEnteredBooks)}>LeafThrough</h2>
@@ -695,7 +749,12 @@ function App() {
             <AuthForm onSignUp={signUpWithEmail} onSignIn={signInWithEmail} />
           </div>
         ) : (
-          <button className='logout' onClick={handleLogout}>Logout</button>
+          <div>
+            <button className='logout' onClick={handleLogout}>Logout</button>
+            <button className="delete-account-btn" onClick={handleDeleteAccount}>
+              Delete Account
+            </button>
+          </div>
         )}
       </div>
 
