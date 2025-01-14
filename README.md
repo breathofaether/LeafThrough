@@ -88,3 +88,10 @@ Use:
     Mozilla Firefox
 
 to ensure full functionality.
+
+### Future updates
+
+    Delete Account – An option to permanently delete user accounts will be implemented.
+    Move Books Between Shelves – Functionality to allow users to reorganize books into different categories will be introduced.
+
+Note: The current build with delete account functionality has not yet been deployed to Netlify, as additional testing is in progress to ensure stability and functionality.
